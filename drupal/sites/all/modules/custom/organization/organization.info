@@ -1,0 +1,5 @@
+name = Organization Module
+description = Drupal module for organization entity
+core = 7.x
+package = Custom
+dependencies[] = user

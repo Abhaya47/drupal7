@@ -1,0 +1,33 @@
+networks:
+  drupal:
+    external: false
+services:
+  drupal:
+    build: 
+      context: ./infrastructure/app
+    container_name: drupal7
+    ports:
+      - "8060:80"
+    volumes:
+      - ./drupal:/var/www/html
+    networks:
+      drupal:
+        aliases:
+          - drupal
+
+  db:
+    image: mariadb:10.6
+    container_name: drupal7-db
+    ports:
+      - "3456:3306"
+    environment:
+      MYSQL_DATABASE: drupal
+      MYSQL_USER: drupal
+      MYSQL_PASSWORD: drupal
+      MYSQL_ROOT_PASSWORD: root
+    volumes:
+      - ./infrastructure/db_data:/var/lib/mysql
+    networks:
+      drupal:
+        aliases:
+          - db

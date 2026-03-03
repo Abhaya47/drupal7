@@ -1,0 +1,37 @@
+<?php
+
+/**
+ * Implements hook_form_FORM_ID_alter().
+ * The Form ID for the login page is 'user_login'.
+ */
+function alter_login_form_form_user_login_alter(&$form, &$form_state, $form_id) {
+    $module_path = drupal_get_path('module', 'alter_login_form');
+
+    // Attach the validation library
+    $form['#attached']['js'][] = array(
+        'data' => $module_path . '/js/jquery.validate.min.js',
+        'type' => 'file',
+        'scope' => 'footer',
+        'weight' => -20,
+    );
+
+    // Attach your custom script
+    $form['#attached']['js'][] = array(
+        'data' => $module_path . '/js/login-form-validate.js',
+        'type' => 'file',
+        'scope' => 'footer',
+        'weight' => -18,
+    );
+
+    // Pass PHP variables to JS
+    $form['#attached']['js'][] = array(
+        'type' => 'setting',
+        'data' => array(
+            'LoginValidation' => array(
+                'required_msg' => t('This field is required.'),
+            ),
+        ),
+    );
+
+    $form['#attributes']['novalidate'] = 'novalidate';
+}

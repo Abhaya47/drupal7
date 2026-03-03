@@ -1,0 +1,14 @@
+name = ams Theme
+type = theme
+description = Custom theme extending Bootstrap
+core = 7.x
+
+base theme = bootstrap
+
+stylesheets[all][] = css/style.css
+scripts[] = js/script.js
+
+regions[header] = Header
+regions[content] = Content
+regions[sidebar_first] = Sidebar
+regions[footer] = Footer

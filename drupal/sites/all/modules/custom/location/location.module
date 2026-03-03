@@ -1,0 +1,206 @@
+<?php
+
+
+/*
+ * Using hook_menu
+ */
+function location_menu()
+{
+    $items = array();
+
+//    list
+    $items['location'] = array(
+        'title' => t('Location'),
+        'page callback' => 'location_list_page',
+        'access callback' => TRUE,
+        'access arguments' => array('access content'),
+    );
+
+    $items['location/add'] = array(
+        'title' => t('Location Add'),
+        'page callback' => 'drupal_get_form',
+        'page arguments' => array('location_form'),
+        'access callback' => TRUE,
+        'access arguments' => array('access content'),
+    );
+
+    $items['location/%'] = array(
+        'title' => 'Edit Location',
+        'page callback' => 'drupal_get_form',
+        'page arguments' => array('location_form', 1),
+        'access callback' => TRUE,
+        'access arguments' => array('access content'),
+    );
+
+    $items['location/%/delete'] = array(
+        'title' => 'Delete Location',
+        'page callback' => 'location_delete',
+        'page arguments' => array(1),
+        'access callback' => TRUE,
+        'access arguments' => array('access content'),
+    );
+
+
+    return $items;
+}
+
+
+/*
+ * List page
+ */
+function location_list_page()
+{
+    $header = array(t('Id'), t('Code'), t('Latitude'), t('Longitude'), t('Country'), t('City'), t('Operations'));
+
+    $rows = array();
+
+    $result = db_select('location', 'l')
+        ->fields('l', array('id', 'code', 'latitude', 'longitude', 'country', 'city'))
+        ->execute();
+    foreach ($result as $row) {
+
+        $operations = l('Edit', 'location/' . $row->id) . ' | ';
+        $operations .= l('Delete', 'location/' . $row->id . '/delete');
+
+        $rows[] = array(
+            $row->id,
+            $row->code,
+            $row->latitude,
+            $row->longitude,
+            $row->country,
+            $row->city,
+            $operations,
+        );
+    }
+
+    return theme('table', array(
+        'header' => $header,
+        'rows' => $rows,
+    ));
+
+
+    return [
+        'location' => [
+            '#theme' => 'location_table',
+            '#header' => $header,
+            '#rows' => $rows,
+        ]
+    ];
+}
+
+function location_theme()
+{
+    return [
+        'location_table' => [
+            'variables' => [
+                'header' => null,
+                'rows' => null
+            ],
+            'template' => 'location-table',
+        ]
+    ];
+}
+
+function location_form($form, &$form_state, $id = NULL) {
+
+    if ($id) {
+        $location = db_select('location', 'l')
+            ->fields('l')
+            ->condition('id', $id)
+            ->execute()
+            ->fetchObject();
+    }
+
+    $form['id'] = array(
+        '#type' => 'hidden',
+        '#value' => isset($location->id) ? $location->id : '',
+    );
+
+    $form['code'] = array(
+        '#type' => 'textfield',
+        '#title' => 'Code',
+        '#required' => TRUE,
+        '#default_value' => isset($location->code) ? $location->code : '',
+    );
+
+    $form['latitude'] = array(
+        '#type' => 'textfield',
+        '#title' => 'Latitude',
+        '#required' => TRUE,
+        '#default_value' => isset($location->latitude) ? $location->latitude : '',
+    );
+
+    $form['longitude'] = array(
+        '#type' => 'textfield',
+        '#title' => 'Longitude',
+        '#required' => TRUE,
+        '#default_value' => isset($location->longitude) ? $location->longitude : '',
+    );
+
+    $form['country'] = array(
+        '#type' => 'textfield',
+        '#title' => 'Country',
+        '#default_value' => isset($location->country) ? $location->country : '',
+    );
+
+    $form['city'] = array(
+        '#type' => 'textfield',
+        '#title' => 'City',
+        '#default_value' => isset($location->city) ? $location->city : '',
+    );
+
+    $form['submit'] = array(
+        '#type' => 'submit',
+        '#value' => 'Save',
+    );
+
+    return $form;
+}
+
+function location_form_submit($form, &$form_state) {
+
+    $fields = array(
+        'code' => $form_state['values']['code'],
+        'latitude' => $form_state['values']['latitude'],
+        'longitude' => $form_state['values']['longitude'],
+        'country' => $form_state['values']['country'],
+        'city' => $form_state['values']['city'],
+    );
+
+    if (!empty($form_state['values']['id'])) {
+
+        db_update('location')
+            ->fields($fields)
+            ->condition('id', $form_state['values']['id'])
+            ->execute();
+
+        drupal_set_message('Location updated.');
+
+    } else {
+        db_insert('location')
+            ->fields($fields)
+            ->execute();
+
+        drupal_set_message('Location added.');
+    }
+
+    $form_state['redirect'] = 'location';
+}
+
+function location_form_validate($form, &$form_state) {
+    $fields = array();
+    foreach ($form_state['values'] as $key => $value) {
+
+    }
+}
+
+function location_delete($id) {
+
+    db_delete('location')
+        ->condition('id', $id)
+        ->execute();
+
+    drupal_set_message('Location deleted.');
+
+    drupal_goto('location');
+}

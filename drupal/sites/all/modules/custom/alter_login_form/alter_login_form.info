@@ -1,0 +1,4 @@
+name = alter_login_form Module
+description = This is to alter login form
+core = 7.x
+package = Custom

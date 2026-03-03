@@ -1,0 +1,5 @@
+<?php
+
+function adminimal_dashboard_theme_settings_alter(&$form, &$form_state) {
+
+}

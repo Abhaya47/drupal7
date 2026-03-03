@@ -1,0 +1,4 @@
+name = Hello Module
+description = My first custom Drupal 7 module
+core = 7.x
+package = Custom

@@ -1,0 +1,31 @@
+<?php
+
+
+function assets_menu()
+{
+    $items = [];
+
+    $items['assets'] = [
+        'title' => 'Assets',
+        'page callback' => 'assets_page',
+        'access callback' => TRUE,
+    ];
+
+    return $items;
+}
+
+function asets_page() {
+
+    $assets = getassets();
+
+    if (empty($assets)) {
+        return '<p>No assets found.</p>';
+    }
+
+    return "$assets";
+}
+
+
+function getassets() {
+
+}

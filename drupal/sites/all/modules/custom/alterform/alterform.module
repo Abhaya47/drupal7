@@ -1,0 +1,54 @@
+<?php
+
+//passing form by reference
+//modulename_form_original.form.name/id_form_alter
+function alterform_form_location_form_alter(&$form, &$form_state)
+{
+
+    // change code title
+    $form['code']['#title'] = 'Location Code (Altered)';
+
+    // add new field
+    $form['extra_note'] = array(
+        '#type' => 'textfield',
+        '#title' => 'Extra Note',
+        '#required' => FALSE,
+        '#weight' => 5
+    );
+    //edit form weight to make it go down
+    $form['submit']['#weight'] = 6;
+
+    // add validation handler
+    $form['#validate'][] = 'alterform_location_validate';
+
+    // add submit handler
+    $form['#submit'][] = 'alterform_location_submit';
+
+}
+
+function alterform_location_validate($form, $form_state)
+{
+
+    $code = trim($form_state['values']['code']);
+    $latitude = trim($form_state['values']['latitude']);
+    $longitude = trim($form_state['values']['longitude']);
+
+    if (drupal_strlen($code) < 3) {
+        form_set_error('code', 'Code must be at least 3 characters.');
+    }
+
+    if (!is_numeric($latitude)) {
+        form_set_error('latitude', 'Latitude must be numeric.');
+    }
+
+    if (!is_numeric($longitude)) {
+        form_set_error('longitude', 'longitude must be numeric.');
+    }
+}
+
+function alterform_location_submit($form, $form_state)
+{
+
+    drupal_set_message('Alterform module works!!!');
+
+}

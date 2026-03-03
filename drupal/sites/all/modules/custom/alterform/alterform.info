@@ -1,0 +1,4 @@
+name = alterform Module
+description = This is to alter form
+core = 7.x
+package = Custom

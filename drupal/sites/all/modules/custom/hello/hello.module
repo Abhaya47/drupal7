@@ -1,0 +1,47 @@
+<?php
+
+function hello_menu()
+{
+    $items = [];
+
+    $items['hello'] = [
+        'title' => 'Hello World Page',
+        'page callback' => 'hello_page',
+        'access callback' => TRUE,
+    ];
+
+    return $items;
+}
+
+function hello_page()
+{
+    return [
+        'hello_block' => [
+            '#theme' => 'hello',
+            '#entries' => 'Hello from hello',
+        ],
+        'test_block' => [
+            '#theme' => 'test',
+            '#entries' => 'Hello from the other side',
+        ],
+    ];
+}
+
+function hello_theme()
+{
+    return [
+        'hello' => [
+            'variables' => [
+                'entries' => NULL,
+            ],
+            'template' => 'hello',
+        ],
+        'test' => [
+            'variables' => [
+                'entries' => NULL,
+            ],
+            'template' => 'test'
+        ]
+    ];
+}
+

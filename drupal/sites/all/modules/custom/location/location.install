@@ -1,0 +1,90 @@
+<?php
+
+/**
+ * Implements hook_schema().
+ */
+function location_schema() {
+    $schema['locations'] = array(
+        'description' => 'Stores location data.',
+        'fields' => array(
+            'id' => array(
+                'description' => 'Primary Key: Unique ID',
+                'type' => 'serial',
+                'unsigned' => TRUE,
+                'not null' => TRUE,
+            ),
+
+            'code' => array(
+                'description' => 'Unique location code',
+                'type' => 'varchar',
+                'length' => 100,
+                'not null' => TRUE,
+            ),
+
+            'latitude' => array(
+                'description' => 'Latitude value',
+                'type' => 'float',
+                'not null' => TRUE,
+            ),
+
+            'longitude' => array(
+                'description' => 'Longitude value',
+                'type' => 'float',
+                'not null' => TRUE,
+            ),
+
+            'country' => array(
+                'description' => 'country',
+                'type' => 'varchar',
+                'length' => 100,
+            ),
+
+            'city' => array(
+                'description' => 'city',
+                'type' => 'varchar',
+                'length' => 100,
+            ),
+
+            'created_at' => array(
+                'description' => 'Created timestamp',
+                'type' => 'int',
+                'not null' => TRUE,
+                'default' => time(),
+            ),
+
+            'updated_at' => array(
+                'description' => 'Updated timestamp',
+                'type' => 'int',
+                'not null' => FALSE,
+            ),
+        ),
+
+        'primary key' => array('id'),
+
+        'unique keys' => array(
+            'latitude_longitude' => array('latitude','longitude'),
+            'code' => array('code'),
+        ),
+
+        'indexes' => array(
+            'country' => array('country'),
+            'city' => array('city')
+        )
+    );
+
+    return $schema;
+}
+
+/**
+ * Implements hook_install().
+ */
+function location_install() {
+    drupal_install_schema('locations');
+}
+
+/**
+ * Implements hook_uninstall().
+ */
+function location_uninstall() {
+    drupal_uninstall_schema('locations');
+}

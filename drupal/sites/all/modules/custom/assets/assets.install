@@ -1,0 +1,10 @@
+<?php
+
+function organizations_schema(){
+    $schema['organizations'] = array(
+        'description' => 'Stores location data',
+        'fields' => array(
+
+        );
+    );
+}
