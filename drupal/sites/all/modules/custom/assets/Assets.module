@@ -14,7 +14,7 @@ function assets_menu()
     return $items;
 }
 
-function asets_page() {
+function assets_page() {
 
     $assets = getassets();
 
