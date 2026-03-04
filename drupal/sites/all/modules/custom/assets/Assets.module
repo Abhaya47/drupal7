@@ -13,19 +13,3 @@ function assets_menu()
 
     return $items;
 }
-
-function assets_page() {
-
-    $assets = getassets();
-
-    if (empty($assets)) {
-        return '<p>No assets found.</p>';
-    }
-
-    return "$assets";
-}
-
-
-function getassets() {
-
-}

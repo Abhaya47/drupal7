@@ -1,0 +1,17 @@
+//INSTALLATION GUIDE
+
+1) Clone the repository
+2) If you want his project cool. But if you want new drupal. Remove the drupal folder
+3.1) You need to download drupal separately.
+3.2) cd /var/www/html
+3.3) curl -O https://ftp.drupal.org/files/projects/drupal-7.98.tar.gz
+3.4) tar -xzf drupal-7.98.tar.gz
+4) docker compose up -d to run the container
+5) You will need to deal with the permission on your local machine and in the container
+6) "Docker ps" command in the terminal shows the containers running
+7) "Docker exec -it container_id sh" to go into container
+8) "bash" to run the terminal in bash
+9) change permissions as you go, look here https://www.drupal.org/docs/administering-a-drupal-site/security-in-drupal/securing-file-permissions-and-ownership
+10) there is a permission manager script in /scripts cd to that and run ./drupal_fix_permissions.sh -u=root -p=/var/www/html
+11) run this "sudo chown -R $USER:$USER drupal" in local give access to drupal folder to you
+12)

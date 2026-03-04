@@ -2,6 +2,7 @@
 <project version="4">
   <component name="VcsDirectoryMappings">
     <mapping directory="$PROJECT_DIR$" vcs="Git" />
+    <mapping directory="$PROJECT_DIR$/drupal/scripts/drupal-fix-permissions-script" vcs="Git" />
     <mapping directory="$PROJECT_DIR$/drupal/sites/all/modules/views" vcs="Git" />
   </component>
 </project>
