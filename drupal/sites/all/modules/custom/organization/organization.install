@@ -3,145 +3,148 @@
 /**
  * Implements hook_schema()
  */
-function organization_schema() {
-  $schema['organization'] = array(
-    'description' => 'Stores organization entities.',
-    'fields' => array(
-      'id' => array(
-        'type' => 'serial',
-        'unsigned' => TRUE,
-        'not null' => TRUE,
-      ),
-      'uuid' => array(
-        'type' => 'varchar',
-        'length' => 128,
-        'not null' => FALSE,
-      ),
-      'type' => array(
-        'type' => 'varchar',
-        'length' => 32,
-        'not null' => TRUE,
-        'default' => 'organization',
-      ),
-      'name' => array(
-        'type' => 'varchar',
-        'length' => 255,
-        'not null' => TRUE,
-      ),
-      'status' => array(
-        'type' => 'int',
-        'size' => 'tiny',
-        'default' => 1,
-      ),
-      'created' => array(
-        'type' => 'int',
-        'not null' => TRUE,
-      ),
-      'changed' => array(
-        'type' => 'int',
-        'not null' => TRUE,
-      ),
-    ),
-    'primary key' => array('id'),
-  );
+function organization_schema()
+{
+    $schema['organization'] = array(
+        'description' => 'Stores organization entities.',
+        'fields' => array(
+            'id' => array(
+                'type' => 'serial',
+                'unsigned' => TRUE,
+                'not null' => TRUE,
+            ),
+            'uuid' => array(
+                'type' => 'varchar',
+                'length' => 128,
+                'not null' => FALSE,
+            ),
+            'type' => array(
+                'type' => 'varchar',
+                'length' => 32,
+                'not null' => TRUE,
+                'default' => 'organization',
+            ),
+            'name' => array(
+                'type' => 'varchar',
+                'length' => 255,
+                'not null' => TRUE,
+            ),
+            'status' => array(
+                'description' => 'A boolean indicating whether organization is active.',
+                'type' => 'int',
+                'size' => 'tiny',
+                'default' => 1,
+            ),
+            'created' => array(
+                'type' => 'int',
+                'not null' => TRUE,
+                'default' => 0
+            ),
+            'changed' => array(
+                'type' => 'int',
+                'not null' => TRUE,
+                'default' => 0
+            ),
+        ),
+        'primary key' => array('id'),
+    );
 
-  return $schema;
+    return $schema;
 }
-
-
-
 
 
 /**
  * Implements hook_install().
  */
-function organization_install() {
+function organization_install()
+{
 
     entity_info_cache_clear();
     field_info_cache_clear();
 
-  // creating fields and instances
+    // creating fields and instances
 
-  // Manager field (user reference)
-  field_create_field(array(
-    'field_name' => 'field_custom_manager',
-    'type' => 'entityreference',
-    'settings' => array('target_type' => 'user'),
-  ));
-  field_create_instance(array(
-    'field_name' => 'field_custom_manager',
-    'entity_type' => 'organization',
-    'bundle' => 'organization',
-    'label' => t('Manager'),
-  ));
+    // Manager field (user reference)
+    field_create_field(array(
+        'field_name' => 'field_custom_manager',
+        'type' => 'entityreference',
+        'settings' => array('target_type' => 'user'),
+    ));
+    field_create_instance(array(
+        'field_name' => 'field_custom_manager',
+        'entity_type' => 'organization',
+        'bundle' => 'organization',
+        'label' => t('Manager'),
+    ));
 
-  // Address field
-  field_create_field(array(
-    'field_name' => 'field_custom_address',
-    'type' => 'text_long',
-  ));
-  field_create_instance(array(
-    'field_name' => 'field_custom_address',
-    'entity_type' => 'organization',
-    'bundle' => 'organization',
-    'label' => t('Address'),
-  ));
+    // Address field
+    field_create_field(array(
+        'field_name' => 'field_custom_address',
+        'type' => 'text_long',
+    ));
+    field_create_instance(array(
+        'field_name' => 'field_custom_address',
+        'entity_type' => 'organization',
+        'bundle' => 'organization',
+        'label' => t('Address'),
+    ));
 
-  // Phone field
-  field_create_field(array(
-    'field_name' => 'field_custom_phone',
-    'type' => 'text',
-  ));
-  field_create_instance(array(
-    'field_name' => 'field_custom_phone',
-    'entity_type' => 'organization',
-    'bundle' => 'organization',
-    'label' => t('Phone'),
-  ));
+    // Phone field
+    field_create_field(array(
+        'field_name' => 'field_custom_phone',
+        'type' => 'text',
+    ));
+    field_create_instance(array(
+        'field_name' => 'field_custom_phone',
+        'entity_type' => 'organization',
+        'bundle' => 'organization',
+        'label' => t('Phone'),
+    ));
 
-  // Logo field
-  field_create_field(array(
-    'field_name' => 'field_custom_logo',
-    'type' => 'file',
-  ));
-  field_create_instance(array(
-    'field_name' => 'field_custom_logo',
-    'entity_type' => 'organization',
-    'bundle' => 'organization',
-    'label' => t('Logo'),
-    'settings' => array(
-        'file_directory' => 'organization_logos',
-        'file_extensions' => 'png jpg jpeg gif',
-        'max_filesize' => '',
-    ),
-  ));
+    // Logo field
+    field_create_field(array(
+        'field_name' => 'field_custom_logo',
+        'type' => 'file',
+    ));
+    field_create_instance(array(
+        'field_name' => 'field_custom_logo',
+        'entity_type' => 'organization',
+        'bundle' => 'organization',
+        'label' => t('Logo'),
+        'settings' => array(
+            'file_directory' => 'organization_logos',
+            'file_extensions' => 'png jpg jpeg gif',
+            'max_filesize' => '',
+        ),
+    ));
 }
 
 /**
  * Implements hook_uninstall().
  */
-function organization_uninstall() {
-  // Use the exact machine names from hook_install()
-  $fields = array(
-    'field_custom_manager',
-    'field_custom_address',
-    'field_custom_phone',
-    'field_custom_logo'
-  );
+function organization_uninstall()
+{
+    // Use the exact machine names from hook_install()
+    $fields = array(
+        'field_custom_manager',
+        'field_custom_address',
+        'field_custom_phone',
+        'field_custom_logo'
+    );
 
-  foreach ($fields as $field_name) {
-    // field_delete_field() automatically handles deleting the instances
-    // attached to this field as well, so we only need this one call.
-    $field = field_info_field($field_name);
-    if ($field) {
-      field_delete_field($field_name);
+    foreach ($fields as $field_name) {
+        // field_delete_field() automatically handles deleting the instances
+        // attached to this field as well, so we only need this one call.
+        $field = field_info_field($field_name);
+        if ($field) {
+            field_delete_field($field_name);
+        }
     }
-  }
 
-  // Purge field data immediately (optional but highly recommended for testing)
-  // Otherwise, the tables linger until Drupal's cron runs.
-  field_purge_batch(1000);
+    // Purge field data immediately (optional but highly recommended for testing)
+    // Otherwise, the tables linger until Drupal's cron runs.
+    field_purge_batch(1000);
 
-  // Note: No need for drupal_uninstall_schema('organization');
-  // Drupal handles that automatically on uninstall.
+    // Note: No need for drupal_uninstall_schema('organization');
+    // Drupal handles that automatically on uninstall.
 }

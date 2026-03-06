@@ -29,7 +29,8 @@ function organization_menu()
  * Organization Entity definition
  */
 
-function organization_entity_info() {
+function organization_entity_info()
+{
     $return['organization'] = array(
         'label' => t('Organization'),
         'base table' => 'organization',
@@ -37,6 +38,7 @@ function organization_entity_info() {
         'fieldable' => FALSE,
         'entity keys' => array(
             'id' => 'id',
+            'bundle' => 'type',
         ),
         'bundles' => array(
             'organization' => array(
@@ -49,36 +51,34 @@ function organization_entity_info() {
     return $return;
 }
 
-function organization_load() {
+function organization_load()
+{
     $controller = new OrganizationAPIController('organization');
     return $controller->organization_load();
 }
 
 function organization_list_page()
 {
-    $header = array(t('Id'), t('Organization Name'), t('Location'), t('Manager'), t('Phone'));
+    $header = array(t('Id'), t('Organization Name'), t('Address'), t('Manager'), t('Phone'), t('Operations'));
 
     $rows = array();
     // loads all organizations
     $organizations = organization_load();
     foreach ($organizations as $row) {
 
-        // Location
-//        $location_id = isset($org->field_location['und'][0]['target_id']) ? $org->field_location['und'][0]['target_id'] : NULL;
-        $location_name = '';
-//        if ($location_id) {
-////            $location_entity = entity_load('location', array($location_id));
-//            $location_name = '$location_entity[$location_id]->name;'
-//        }
-
         // Manager
-        $manager_id = isset($org->field_manager['und'][0]['target_id']) ? $org->field_manager['und'][0]['target_id'] : NULL;
+        $manager_id = isset($row->field_custom_manager['und'][0]['target_id']) ? $row->field_custom_manager['und'][0]['target_id'] : NULL;
         if ($manager_id) {
             $manager_name = user_load($manager_id)->name;
         }
+        else{
+            $manager_name = NULL;
+        }
 
         // Phone
-        $phone = isset($org->field_phone['und'][0]['value']) ? $org->field_phone['und'][0]['value'] : '';
+        $phone = isset($row->field_custom_phone['und'][0]['value']) ? $row->field_custom_phone['und'][0]['value'] : '';
+        // address
+        $address = isset($row->field_custom_address['und'][0]['value']) ? $row->field_custom_address['und'][0]['value'] : '';
 
         // Define operations (Edit and Delete links)
         $operations = l(t('Edit'), 'organization/edit/' . $row->id) . ' | ';
@@ -88,9 +88,9 @@ function organization_list_page()
         $rows[] = array(
             $row->id,
             $row->name,
-            $location_name,
+            $address,
             $manager_name,
-            $row,
+            $phone,
             $operations
         );
     }
@@ -106,34 +106,100 @@ function organization_form($form, &$form_state)
 
     $form['name'] = array(
         '#type' => 'textfield',
-        '#title' => 'Organization Name',
+        '#title' => t('Organization Name'),
         '#required' => TRUE,
     );
 
-    // Location dropdown
+    $form['user'] = array(
+        '#type' => 'textfield',
+        '#title' => t('User'),
+        '#autocomplete_path' => 'user/autocomplete',
+        '#description' => t('Start typing the username.'),
+    );
 
+    $form['status'] = array(
+        '#type' => 'select',
+        '#title' => t('Status'),
+        '#options' => array(
+            0 => t('Inactive'),
+            1 => t('Active'),
+        )
+    );
 
     $form['address'] = array(
         '#type' => 'textarea',
-        '#title' => 'Address',
+        '#title' => t('Address'),
     );
 
     $form['phone'] = array(
         '#type' => 'textfield',
-        '#title' => 'Phone',
+        '#title' => t('Phone'),
     );
 
     $form['logo'] = array(
         '#type' => 'managed_file',
-        '#title' => 'Logo',
+        '#title' => t('Logo'),
         '#upload_location' => 'public://organization_logos/',
     );
 
     $form['submit'] = array(
         '#type' => 'submit',
-        '#value' => 'Save Organization',
+        '#value' => t('Save Organization'),
     );
 
     return $form;
+}
+
+function organization_form_submit($form, &$form_state){
+    $values = $form_state['values'];
+    $entity = entity_create('organization', array('type' => 'organization'));
+
+    $lang = LANGUAGE_NONE;
+
+    $entity->name = $values['name'];
+    $entity->status = $values['status'];
+    $entity->created = time();
+    $entity->changed = time();
+
+    // Save the base entity first to get an ID for file usage
+    $entity = entity_save('organization', $entity);
+
+    $wrapper = entity_metadata_wrapper('organization', $entity);
+
+    // Convert username to user ID
+    if (!empty($values['user'])) {
+        $user = user_load_by_name($values['user']);
+        if ($user) {
+            $wrapper->field_custom_manager->set($user->uid);
+        }
+    }
+
+    if (!empty($values['address'])) {
+        $wrapper->field_custom_address->set($values['address']);
+    }
+
+    if (!empty($values['phone'])) {
+        $wrapper->field_custom_phone->set($values['phone']);
+    }
+
+    // Handle the file/logo
+    if (!empty($values['logo'][0])) {
+        $fid = $values['logo'][0];
+        if ($file = file_load($fid)) {
+            $file->status = FILE_STATUS_PERMANENT;
+            file_save($file);
+
+            // Set the file ID
+            $wrapper->field_custom_logo->set($fid);
+
+            // Add file usage so Drupal doesn't delete it later as "temporary"
+            file_usage_add($file, 'organization', 'organization', $entity);
+        }
+    }
+
+    // Save the entity with field data
+    $wrapper->save();
+
+    drupal_set_message(t('Organization saved.'));
 }
 

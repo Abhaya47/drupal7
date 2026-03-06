@@ -14,4 +14,13 @@
 9) change permissions as you go, look here https://www.drupal.org/docs/administering-a-drupal-site/security-in-drupal/securing-file-permissions-and-ownership
 10) there is a permission manager script in /scripts cd to that and run ./drupal_fix_permissions.sh -u=root -p=/var/www/html
 11) run this "sudo chown -R $USER:$USER drupal" in local give access to drupal folder to you
-12)
+12) in docker instance run find . -type f -exec chmod 644 {} \;
+                           find . -type d -exec chmod 755 {} \;
+                           standard linux server permission that allows apache access to serve files
+                           //for file upload
+                           chown -R www-data:www-data sites/default/files
+                           chmod 755 sites/default/files
+13) if you use phpStorm https://www.jetbrains.com/help/phpstorm/drupal-support.html
+
+//
+Database username and password is root root
