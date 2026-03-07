@@ -228,18 +228,22 @@ function organization_form($form, &$form_state, $id = NULL)
             0 => t('Inactive'),
             1 => t('Active'),
         ),
-        '#default_value' => $organization ? $organization['status'] : 0,);
+        '#default_value' => $organization ? $organization['status'] : 0,
+        '#required' => TRUE,
+    );
 
     $form['address'] = array(
         '#type' => 'textarea',
         '#title' => t('Address'),
         '#default_value' => $organization ? $organization['address'] : '',
+        '#required' => TRUE,
     );
 
     $form['phone'] = array(
         '#type' => 'textfield',
         '#title' => t('Phone'),
         '#default_value' => $organization ? $organization['phone'] : '',
+        '#required' => TRUE,
     );
 
     $form['logo'] = array(
@@ -254,7 +258,40 @@ function organization_form($form, &$form_state, $id = NULL)
         '#value' => t('Save Organization'),
     );
 
+    $module_path = drupal_get_path('module', 'organization');
+
+    $form['#attached']['js'][] = array(
+        'data' => $module_path . '/js/jquery.validate.min.js',
+        'type' => 'file',
+        'scope' => 'header',
+        'weight' => -20,
+    );
+
+    $form['#attached']['js'][] = array(
+        'data' => $module_path . '/js/additional-methods.min.js',
+        'type' => 'file',
+        'scope' => 'header',
+        'weight' => -19,
+    );
+
+    $form['#attached']['js'][] = array(
+        'data' => $module_path . '/js/organization-form-validate.js',
+        'type' => 'file',
+        'scope' => 'header',
+        'weight' => -18,
+    );
+
     return $form;
+}
+
+function organization_form_validate($form, &$form_state)
+{
+    if (strlen(trim($form_state['values']['address'])) < 3) {
+        form_set_error('title', t('Address must be at least 3 characters long.'));
+    }
+    if (!isset($form_state['values']['phone']) || !is_numeric($form_state['values']['phone'])) {
+        form_set_error('phone', t('Phone must be numeric.'));
+    }
 }
 
 function organization_form_submit($form, &$form_state)
