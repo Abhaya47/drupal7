@@ -2,7 +2,8 @@
     Drupal.behaviors.organizationFormValidate = {
         attach: function (context, settings) {
             // Ensure this only runs once per form
-            $('form[id^="organization_form"]', context).once('organization-validate').each(function () {
+            // The form id should be in hyphon not in underscore
+            $('form[id^="organization-form"]', context).once('organization-validate').each(function () {
                 $(this).validate({
                     rules: {
                         name: {

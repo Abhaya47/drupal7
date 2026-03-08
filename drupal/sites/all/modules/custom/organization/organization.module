@@ -34,6 +34,7 @@ function organization_menu()
         'page callback' => 'organization_delete',
         'page arguments' => array(2),
         'access arguments' => array('administer site configuration'),
+
     );
 
     $items['organization/view/%'] = array(
@@ -140,6 +141,11 @@ function entityWrapper($org)
 
 function organization_list_page()
 {
+    $build['organizations_wrapper'] = array(
+        '#type' => 'container',
+        '#attributes' => array('id' => 'organizations-wrapper'),
+    );
+
     $header = array(t('Id'), t('Organization Name'), t('Address'), t('Manager'), t('Phone'), t('Operations'));
 
     $rows = array();
@@ -161,6 +167,10 @@ function organization_list_page()
             'delete' => array(
                 'title' => t('Delete'),
                 'href' => 'organization/delete/' . $org->id,
+                'attributes' => array(
+                    'class' => array('use-ajax', 'delete-link'),
+                    'data-org-id' => $org->id, // optional, can use in JS
+                ),
             ),
         );
         // Add row to the table
@@ -170,17 +180,12 @@ function organization_list_page()
             $wrapperResult['address'],
             $wrapperResult['manager_name'],
             $wrapperResult['phone'],
-            array(
-                'data' => theme('links__ctools_dropbutton', array(
-                    'links' => $links,
-                    'attributes' => array('class' => array('links', 'inline')),
-                )),
-            ),
+            $links
         );
     }
 
-    $build['table'] = array(
-        '#theme' => 'table',
+    $build['organizations_wrapper']['table'] = array(
+        '#theme' => 'organization_list',
         '#header' => $header,
         '#rows' => $rows,
         '#empty' => t('No organizations found'),
@@ -189,7 +194,7 @@ function organization_list_page()
     $build['pager'] = array(
         '#theme' => 'pager',
     );
-
+    $build['#attached']['css'][] = drupal_get_path('module', 'organization') . '/css/organization-list.css';
     return $build;
 }
 
@@ -268,7 +273,7 @@ function organization_form($form, &$form_state, $id = NULL)
     );
 
     $form['#attached']['js'][] = array(
-        'data' => $module_path . '/js/additional-methods.min.js',
+        'data' => $module_path . '/js/additional-methods.js',
         'type' => 'file',
         'scope' => 'header',
         'weight' => -19,
@@ -287,7 +292,7 @@ function organization_form($form, &$form_state, $id = NULL)
 function organization_form_validate($form, &$form_state)
 {
     if (strlen(trim($form_state['values']['address'])) < 3) {
-        form_set_error('title', t('Address must be at least 3 characters long.'));
+        form_set_error('address', t('Address must be at least 3 characters long.'));
     }
     if (!isset($form_state['values']['phone']) || !is_numeric($form_state['values']['phone'])) {
         form_set_error('phone', t('Phone must be numeric.'));
@@ -360,8 +365,7 @@ function organization_form_submit($form, &$form_state)
 }
 
 
-function organization_delete($id)
-{
+function organization_delete($id) {
     organizationController()->deleteOrganization($id);
     drupal_set_message('Organization deleted.');
     drupal_goto('organization/list');
@@ -381,15 +385,15 @@ function organization_view($id)
 function organization_theme($existing, $type, $theme, $path)
 {
     return array(
-//        'organization_list' => array(
-//            'variables' => array(
-//                'header' => NULL,
-//                'rows' => NULL,
-//                'empty' => NULL,
-//            ),
-//            'template' => 'organization-list',
-//            'path' => drupal_get_path('module', 'organization') . '/templates',
-//        ),
+        'organization_list' => array(
+            'variables' => array(
+                'header' => NULL,
+                'rows' => NULL,
+                'empty' => NULL,
+            ),
+            'template' => 'organization-list',
+            'path' => drupal_get_path('module', 'organization') . '/templates',
+        ),
         'organization_view' => array(
             'variables' => array(
                 'organization' => NULL,

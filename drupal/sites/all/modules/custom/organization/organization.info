@@ -3,3 +3,5 @@ description = Drupal module for organization entity
 core = 7.x
 package = Custom
 dependencies[] = user
+scripts[] = js/jquery.validate.min.js
+scripts[] = js/organization-form-validate.js

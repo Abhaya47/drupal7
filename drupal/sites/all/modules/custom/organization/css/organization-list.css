@@ -1,0 +1,53 @@
+/* Dropdown Container */
+.action-dropdown {
+    position: relative;
+    display: inline-block;
+}
+
+/* Dropdown Button */
+.action-dropbtn {
+    background-color: #0073e6;
+    color: white;
+    padding: 6px 12px;
+    font-size: 14px;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+}
+
+/* Dropdown Content (Hidden by Default) */
+.action-dropdown-content {
+    display: none;
+    position: absolute;
+    right: 0; /* Aligns the dropdown to the right edge to prevent table overflow */
+    background-color: #ffffff;
+    min-width: 120px;
+    box-shadow: 0px 8px 16px 0px rgba(0,0,0,0.2);
+    z-index: 10;
+    border-radius: 4px;
+    overflow: hidden;
+}
+
+/* Links inside the dropdown */
+.action-dropdown-content a {
+    color: #333333;
+    padding: 10px 14px;
+    text-decoration: none;
+    display: block;
+    font-size: 14px;
+}
+
+/* Change color of dropdown links on hover */
+.action-dropdown-content a:hover {
+    background-color: #f1f1f1;
+}
+
+/* Show the dropdown menu on hover */
+.action-dropdown:hover .action-dropdown-content {
+    display: block;
+}
+
+/* Darken button background on hover */
+.action-dropdown:hover .action-dropbtn {
+    background-color: #005bb5;
+}
