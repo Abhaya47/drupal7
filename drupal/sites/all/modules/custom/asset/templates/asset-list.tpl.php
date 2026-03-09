@@ -4,27 +4,27 @@
             <div class="toolbar-left">
                 <div class="search-box">
                     <span class="search-icon">🔍</span>
-                    <input type="text" id="table-search" placeholder="Search organizations..." onkeyup="filterTable()">
+                    <input type="text" id="table-search" placeholder="Search assets..." onkeyup="filterTable()">
                 </div>
 
-                <div class="filter-wrapper">
-                    <select id="status-filter" onchange="filterStatus()">
-                        <option value="all">All Status</option>
-                        <option value="active">Active</option>
-                        <option value="inactive">Inactive</option>
-                    </select>
-                </div>
+                <!--                <div class="filter-wrapper">-->
+                <!--                    <select id="status-filter" onchange="filterStatus()">-->
+                <!--                        <option value="all">All Status</option>-->
+                <!--                        <option value="active">Active</option>-->
+                <!--                        <option value="inactive">Inactive</option>-->
+                <!--                    </select>-->
+                <!--                </div>-->
             </div>
 
             <div class="toolbar-right">
-                <?php print l(t('Add'), 'organization/add', array('attributes' => array('class' => array('btn', 'add-btn'))));?>
-<!--                <a href="organization/add" class="add-btn">+ Add Organization</a>-->
+                <?php print l(t('Add'), 'asset/add', array('attributes' => array('class' => array('btn', 'add-btn')))); ?>
+                <!--                <a href="asset/add" class="add-btn">+ Add Asset</a>-->
             </div>
         </div>
 
 
-        <div class="organization-table-wrapper">
-            <table class="modern-organization-table">
+        <div class="asset-table-wrapper">
+            <table class="modern-asset-table">
 
                 <thead>
                 <tr>
@@ -49,22 +49,17 @@
                                             <?php foreach ($cell as $key => $link): ?>
                                                 <?php
                                                 $class = isset($link['attributes']['class']) ? implode(' ', $link['attributes']['class']) : '';
-                                                $data_id = isset($link['attributes']['data-org-id']) ? ' data-org-id="' . $link['attributes']['data-org-id'] . '"' : '';
+                                                $data_id = isset($link['attributes']['data-asset-id']) ? ' data-asset-id="' . $link['attributes']['data-asset-id'] . '"' : '';
                                                 ?>
                                                 <?php print l($link['title'], $link['href'], array('attributes' => isset($link['attributes']) ? $link['attributes'] : array())); ?><?php endforeach; ?>
                                         </div>
                                     </div>
                                 <?php else: ?>
 
-                                    <?php if ($col_index == 1): // Organization Name Column ?>
-                                        <div class="org-name-cell">
-                                            <div class="org-avatar"><?php print strtoupper(substr(trim(strip_tags($cell)), 0, 1)); ?></div>
-                                            <span class="org-title"><?php print $cell; ?></span>
-                                        </div>
-
-                                    <?php elseif ($col_index == 3): // Manager Column ?>
-                                        <div class="manager-cell">
-                                            <span class="mgr-icon">👤</span> <?php print $cell; ?>
+                                    <?php if ($col_index == 1): // Asset Name Column ?>
+                                        <div class="asset-name-cell">
+                                            <div class="asset-avatar"><?php print strtoupper(substr(trim(strip_tags($cell)), 0, 1)); ?></div>
+                                            <span class="asset-title"><?php print $cell; ?></span>
                                         </div>
 
                                     <?php else: ?>
@@ -87,6 +82,20 @@
 
 <?php else: ?>
     <div class="modern-table-container">
-        <p class="empty-message"><?php print $empty; ?></p>
+    <div class="table-header-toolbar">
+        <div class="toolbar-left">
+            <div class="search-box">
+                <span class="search-icon">🔍</span>
+                <input type="text" id="table-search" placeholder="Search assets..." onkeyup="filterTable()">
+            </div>
+
+            <div class="toolbar-right">
+                <?php print l(t('Add'), 'asset/add', array('attributes' => array('class' => array('btn', 'add-btn')))); ?>
+                <!--                <a href="asset/add" class="add-btn">+ Add Asset</a>-->
+            </div>
+        </div>
+        <div>
+            <p class="empty-message"><?php print $empty; ?></p>
+        </div>
     </div>
 <?php endif; ?>

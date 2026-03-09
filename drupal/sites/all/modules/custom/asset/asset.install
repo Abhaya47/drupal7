@@ -23,6 +23,12 @@ function asset_schema()
                 'length' => 255,
                 'not null' => TRUE,
             ),
+            'type'=> array(
+                'type' => 'varchar',
+                'length' => 32,
+                'not null' => TRUE,
+                'default' => 'organization',
+            ),
             'created' => array(
                 'type' => 'int',
                 'not null' => TRUE,

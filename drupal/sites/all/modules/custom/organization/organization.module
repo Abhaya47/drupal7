@@ -190,6 +190,7 @@ function organization_list_page()
         '#rows' => $rows,
         '#empty' => t('No organizations found'),
     );
+    
 
     $build['pager'] = array(
         '#theme' => 'pager',
@@ -210,7 +211,7 @@ function organization_form($form, &$form_state, $id = NULL)
 
     $form['id'] = array(
         '#type' => 'hidden',
-        '#value' => $organization ? $organization['id'] : '',);
+        '#default_value' => $organization ? $organization['id'] : '',);
 
     $form['name'] = array(
         '#type' => 'textfield',
@@ -248,16 +249,13 @@ function organization_form($form, &$form_state, $id = NULL)
         '#title' => t('Phone'),
         '#default_value' => $organization ? $organization['phone'] : '',
         '#required' => TRUE,
-        '#multiple' => TRUE,
-        '#description' => t('Enter the phone number. You can keep multiple phone numbers'),
     );
 
     $form['logo'] = array(
         '#type' => 'managed_file',
         '#title' => t('Logo'),
         '#upload_location' => 'public://organization_logos/',
-        '#default_value' => $organization ? $organization['logo'] : '',
-    );
+        '#default_value' => $organization && $organization['logo'] ? array($organization['logo']) : NULL,    );
 
     $form['submit'] = array(
         '#type' => 'submit',
@@ -286,6 +284,9 @@ function organization_form($form, &$form_state, $id = NULL)
         'scope' => 'header',
         'weight' => -18,
     );
+    $form['#attributes']['id'] = 'organization-form';
+    $form['#theme'] = 'organization_form_template';
+    $form['#attached']['css'][] = drupal_get_path('module', 'organization') . '/css/organization-form.css';
 
     return $form;
 }
@@ -324,6 +325,25 @@ function organization_form_submit($form, &$form_state) {
         $organization->field_custom_manager[$lang][0]['target_id'] = $user->uid;
         $organization->field_custom_address[$lang][0]['value'] = $values['address'];
         $organization->field_custom_phone[$lang][0]['value'] = $values['phone'];
+
+        if (!empty($values['logo'])) {
+
+            $fid = is_array($values['logo']) ? $values['logo'][0] : $values['logo'];
+
+            if ($file = file_load($fid)) {
+
+                $file->status = FILE_STATUS_PERMANENT;
+                file_save($file);
+
+                $organization->field_custom_logo[$lang][0] = array(
+                    'fid' => $values['logo'],
+                    'display' => 1,
+                    'description' => '',
+                );
+
+                file_usage_add($file, 'organization', 'organization', $fid);
+            }
+        }
 
         organizationController()->saveOrganization($organization);
 
@@ -385,6 +405,7 @@ function organization_view($id)
     ];
 }
 
+//Theme hook
 function organization_theme($existing, $type, $theme, $path)
 {
     return array(
@@ -402,6 +423,11 @@ function organization_theme($existing, $type, $theme, $path)
                 'organization' => NULL,
             ),
             'template' => 'organization-view',
+            'path' => drupal_get_path('module', 'organization') . '/templates',
+        ),
+        'organization_form_template' => array(
+            'render element' => 'form',
+            'template' => 'organization-form',
             'path' => drupal_get_path('module', 'organization') . '/templates',
         ),
     );

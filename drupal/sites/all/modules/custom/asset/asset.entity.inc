@@ -18,10 +18,6 @@ class AssetAPIController extends EntityAPIController
         global $user;
         $query = new EntityFieldQuery();
         $query->entityCondition('entity_type', 'asset');
-        if (!in_array('administrator', $user->roles))
-        {
-            $query->fieldCondition('field_custom_manager', 'target_id', $user->uid);
-        }
         if($filter)
         {
             $query->propertyCondition('status', $filter);

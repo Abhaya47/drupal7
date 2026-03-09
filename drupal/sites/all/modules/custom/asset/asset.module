@@ -64,6 +64,7 @@ function asset_entity_info()
         'fieldable' => TRUE, //needs to be true to save data to fields
         'entity keys' => array(
             'id' => 'id',
+
         ),
         'bundle keys' => array(
             'bundle' => 'type',
@@ -164,7 +165,7 @@ function asset_form($form, &$form_state, $id = NULL)
     $asset = NULL;
     if ($id) {
         $assetEntity = assetController()->loadAssetByID($id);
-        $asset = entityWrapper('asset', $id);
+        $asset = entityWrapper($assetEntity);
     }
 
 
@@ -247,6 +248,7 @@ function asset_form($form, &$form_state, $id = NULL)
     $form['submit'] = array(
         '#type' => 'submit',
         '#value' => t('Save Asset'),
+
     );
 
     $module_path = drupal_get_path('module', 'asset');
@@ -272,6 +274,10 @@ function asset_form($form, &$form_state, $id = NULL)
         'weight' => -18,
     );
 
+    $form['#attributes']['id'] = 'asset-form';
+    $form['#theme'] = 'asset_form_template';
+    $form['#attached']['css'][] = drupal_get_path('module', 'asset') . '/css/asset-form.css';
+
     return $form;
 }
 
@@ -279,6 +285,8 @@ function asset_form($form, &$form_state, $id = NULL)
 function organization_autocomplete($string) {
     $matches = array();
 
+    $string = trim(substr($string, 0, 255));
+    $string = preg_replace('/[\x00-\x1F\x7F]/u', '', $string);
     $result = db_select('organization', 'o')
         ->fields('o', ['name'])
         ->condition('name', db_like($string) . '%', 'LIKE')
@@ -294,8 +302,12 @@ function organization_autocomplete($string) {
 
 function asset_list_page()
 {
+    $build['assets_wrapper'] = array(
+        '#type' => 'container',
+        '#attributes' => array('id' => 'assets-wrapper'),
+    );
 
-    $header = array(t('Id'), t('Name'), t('Asset Type'), t('Asset Condition'), t('Organization'), t('Assigned User'), t('Image'), t('Operations'));
+    $header = array(t('Id'), t('Name'), t('Asset Type'), t('Asset Condition'), t('Organization'), t('Assigned User'), t('Operations'));
 
     $assets = assetController()->loadAsset();
     foreach ($assets as $asset) {
@@ -330,10 +342,19 @@ function asset_list_page()
         );
     }
 
-    return theme('table', array(
-        'header' => $header,
-        'rows' => $rows,
-    ));
+    $build['assets_wrapper_wrapper']['table'] = array(
+        '#theme' => 'asset_list',
+        '#header' => $header,
+        '#rows' => $rows,
+        '#empty' => t('No assets found'),
+    );
+
+
+    $build['pager'] = array(
+        '#theme' => 'pager',
+    );
+    $build['#attached']['css'][] = drupal_get_path('module', 'asset') . '/css/asset-list.css';
+    return $build;
 }
 
 function asset_form_validate($form, &$form_state)
@@ -428,4 +449,51 @@ function asset_form_submit($form, &$form_state)
         assetController()->saveAsset($entity);
         drupal_set_message(t('Asset %name saved.', array('%name' => $entity->name)));
     }
+}
+
+function asset_delete($id) {
+    assetController()->deleteAsset($id);
+    drupal_set_message('Asset deleted.');
+    drupal_goto('asset');
+}
+
+function asset_view($id)
+{
+    $assetEntity = assetController()->loadAssetByID($id);
+    $wrappedAsset = entityWrapper($assetEntity);
+    drupal_add_css(drupal_get_path('module', 'asset') . '/css/asset-view.css');
+    return [
+        '#theme' => 'asset_view',
+        '#organization' => $wrappedAsset,
+    ];
+}
+
+
+
+//Theme hook
+function asset_theme($existing, $type, $theme, $path)
+{
+    return array(
+        'asset_list' => array(
+            'variables' => array(
+                'header' => NULL,
+                'rows' => NULL,
+                'empty' => NULL,
+            ),
+            'template' => 'asset-list',
+            'path' => drupal_get_path('module', 'asset') . '/templates',
+        ),
+        'asset_view' => array(
+            'variables' => array(
+                'asset' => NULL,
+            ),
+            'template' => 'asset-view',
+            'path' => drupal_get_path('module', 'asset') . '/templates',
+        ),
+        'asset_form_template' => array(
+            'render element' => 'form',
+            'template' => 'asset-form',
+            'path' => drupal_get_path('module', 'asset') . '/templates',
+        ),
+    );
 }

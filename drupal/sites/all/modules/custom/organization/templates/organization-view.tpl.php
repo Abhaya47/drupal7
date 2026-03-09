@@ -17,12 +17,7 @@
             </div>
             <div>
                 <?php
-                print l(t('Edit'), 'organization/edit/' . $organization['id'],
-                        array(
-                                'attributes' => array(
-                                        'class' => array('btn', 'btn-edit')
-                                )
-                        )
+                print l(t('Edit'), 'organization/edit/' . $organization['id'], array('attributes' => array('class' => array('btn', 'btn-edit')))
                 );
                 ?>
             </div>
