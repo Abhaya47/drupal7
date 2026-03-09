@@ -1,0 +1,431 @@
+<?php
+
+module_load_include('inc', 'asset', 'asset.entity');
+
+function asset_menu()
+{
+    $items = [];
+
+    $items['asset'] = array(
+        'title' => t('Asset'),
+        'page callback' => 'asset_list_page',
+        'access callback' => TRUE,
+        'access arguments' => array('access content'),
+    );
+
+    $items['asset/add'] = array(
+        'title' => t('Add Asset'),
+        'page callback' => 'drupal_get_form',
+        'page arguments' => array('asset_form'),
+        'access arguments' => array('access content'),
+    );
+
+    $items['asset/edit/%'] = array(
+        'title' => t('Edit Asset'),
+        'page callback' => 'drupal_get_form',
+        'page arguments' => array('asset_form', 2),
+        'access arguments' => array('access content'),
+
+    );
+
+    $items['asset/delete/%'] = array(
+        'title' => t('Delete Asset'),
+        'page callback' => 'asset_delete',
+        'page arguments' => array(2),
+        'access arguments' => array('administer site configuration'),
+
+    );
+
+    $items['asset/view/%'] = array(
+        'title' => t('View Asset'),
+        'page callback' => 'asset_view',
+        'page arguments' => array(2),
+        'access arguments' => array('access content'),
+    );
+
+    $items['organization/autocomplete'] = array(
+        'page callback' => 'organization_autocomplete',
+        'access arguments' => array('access content'), // or a custom permission
+        'type' => MENU_CALLBACK,
+    );
+
+    return $items;
+}
+
+/**
+ * Asset Entity definition
+ */
+function asset_entity_info()
+{
+    $return['asset'] = array(
+        'label' => t('Asset'),
+        'base table' => 'asset',
+        'controller class' => 'AssetAPIController',
+        'fieldable' => TRUE, //needs to be true to save data to fields
+        'entity keys' => array(
+            'id' => 'id',
+        ),
+        'bundle keys' => array(
+            'bundle' => 'type',
+        ),
+        'bundles' => array(
+            'asset' => array(
+                'label' => t('Asset'),
+            ),
+        ),
+        'module' => 'asset',
+    );
+
+    return $return;
+}
+
+function assetController(): AssetAPIController
+{
+    return new AssetAPIController('asset');
+}
+
+function assetEntityWrapper($asset)
+{
+    $wrapper = entity_metadata_wrapper('asset', $asset);
+
+    $id = NULL;
+    if (!empty($wrapper->id->value())) {
+        $id = $wrapper->id->value();
+    }
+
+
+    $name = $wrapper->name->value();
+    $ssn = $wrapper->ssn->value();
+
+    $asset_type = '';
+    try {
+        $term = $wrapper->field_custom_asset_type->value();
+        if ($term) {
+            $asset_type = $term->name;
+        }
+    } catch (Exception $e) {
+        $asset_type = '';
+    }
+
+// asset_condition
+    $asset_condition = '';
+    try {
+        $term = $wrapper->field_custom_asset_condition->value();
+        if ($term) {
+            $asset_condition = $term->name;
+        }
+    } catch (Exception $e) {
+        $asset_condition = '';
+    }
+
+    // asset_organization
+    $asset_organization = '';
+    try {
+        $organization = $wrapper->field_custom_asset_organization->value();
+        if ($organization) {
+            $asset_organization = $organization->name;
+        }
+    } catch (Exception $e) {
+        $asset_organization = '';
+    }
+
+    // user
+    $assigned_user = '';
+    try {
+        $user = $wrapper->field_custom_assigned_user->value();
+        if ($user) {
+            $assigned_user = $user->name;
+        }
+    } catch (Exception $e) {
+        $assigned_user = '';
+    }
+
+    $asset_image = '';
+    try {
+        $asset_image = $wrapper->field_custom_asset_image->value();
+    } catch (Exception $e) {
+        $asset_image = '';
+    }
+
+    return array(
+        'id' => $id,
+        'name' => $name,
+        'ssn' => $ssn,
+        'asset_type' => $asset_type,
+        'asset_condition' => $asset_condition,
+        'asset_organization' => $asset_organization,
+        'assigned_user' => $assigned_user,
+        'asset_image' => $asset_image,
+    );
+}
+
+function asset_form($form, &$form_state, $id = NULL)
+{
+    $asset = NULL;
+    if ($id) {
+        $assetEntity = assetController()->loadAssetByID($id);
+        $asset = entityWrapper('asset', $id);
+    }
+
+
+    $form['id'] = array(
+        '#type' => 'hidden',
+        '#default_value' => isset($asset['id']) ? $asset['id'] : '',
+    );
+
+    $form['name'] = array(
+        '#type' => 'textfield',
+        '#title' => t('Asset Name'),
+        '#required' => TRUE,
+        '#default_value' => isset($asset['name']) ? $asset['name'] : '',
+    );
+
+    $form['ssn'] = array(
+        '#type' => 'textfield',
+        '#title' => t('SSN'),
+        '#required' => TRUE,
+        '#default_value' => isset($asset['ssn']) ? $asset['ssn'] : '',
+    );
+
+    /**
+     * TAXONOMY SELECTS
+     */
+
+    // Asset Type
+    $form['asset_type'] = array(
+        '#type' => 'select',
+        '#title' => t('Asset Type'),
+        '#options' => asset_get_taxonomy_options('asset_type'),
+        '#empty_option' => t('- Select Type -'),
+        '#default_value' => isset($asset['asset_type']) ? $asset['asset_type'] : '',
+    );
+
+    // Asset Condition
+    $form['asset_condition'] = array(
+        '#type' => 'select',
+        '#title' => t('Asset Condition'),
+        '#options' => asset_get_taxonomy_options('asset_condition'),
+        '#empty_option' => t('- Select Condition -'),
+        '#default_value' => isset($asset['asset_condition']) ? $asset['asset_condition'] : '',
+    );
+
+    /**
+     * ENTITY AUTOCOMPLETE
+     */
+
+    // Organization
+    $form['asset_organization'] = array(
+        '#type' => 'textfield',
+        '#title' => t('Organization'),
+        '#autocomplete_path' => 'organization/autocomplete',
+        '#default_value' => isset($asset['asset_organization']) ? $asset['asset_organization'] : '',
+    );
+
+    // Assigned User
+    $form['assigned_user'] = array(
+        '#type' => 'textfield',
+        '#title' => t('Assigned User'),
+        '#autocomplete_path' => 'user/autocomplete',
+        '#default_value' => isset($asset['assigned_user']) ? $asset['assigned_user'] : '',
+    );
+
+    /**
+     * IMAGE
+     */
+
+    $form['asset_image'] = array(
+        '#type' => 'managed_file',
+        '#title' => t('Asset Image'),
+        '#upload_location' => 'public://asset_images/',
+        '#default_value' => isset($asset['asset_image']) ? array($asset['asset_image']) : '',
+    );
+
+    /**
+     * SUBMIT
+     */
+
+    $form['submit'] = array(
+        '#type' => 'submit',
+        '#value' => t('Save Asset'),
+    );
+
+    $module_path = drupal_get_path('module', 'asset');
+
+    $form['#attached']['js'][] = array(
+        'data' => $module_path . '/js/jquery.validate.min.js',
+        'type' => 'file',
+        'scope' => 'header',
+        'weight' => -20,
+    );
+
+    $form['#attached']['js'][] = array(
+        'data' => $module_path . '/js/additional-methods.js',
+        'type' => 'file',
+        'scope' => 'header',
+        'weight' => -19,
+    );
+
+    $form['#attached']['js'][] = array(
+        'data' => $module_path . '/js/asset-form-validate.js',
+        'type' => 'file',
+        'scope' => 'header',
+        'weight' => -18,
+    );
+
+    return $form;
+}
+
+//autocomplete
+function organization_autocomplete($string) {
+    $matches = array();
+
+    $result = db_select('organization', 'o')
+        ->fields('o', ['name'])
+        ->condition('name', db_like($string) . '%', 'LIKE')
+        ->range(0, 10)
+        ->execute()
+        ->fetchAll();
+    foreach ($result as $row) {
+        $matches[$row->name] = check_plain($row->name);
+    }
+
+    drupal_json_output($matches);
+}
+
+function asset_list_page()
+{
+
+    $header = array(t('Id'), t('Name'), t('Asset Type'), t('Asset Condition'), t('Organization'), t('Assigned User'), t('Image'), t('Operations'));
+
+    $assets = assetController()->loadAsset();
+    foreach ($assets as $asset) {
+        $wrapperResult = assetEntityWrapper($asset);
+        $links = array();
+        $links = array(
+            'view' => array(
+                'title' => t('View'),
+                'href' => 'asset/view/' . $asset->id,
+            ),
+            'edit' => array(
+                'title' => t('Edit'),
+                'href' => 'asset/edit/' . $asset->id,
+            ),
+            'delete' => array(
+                'title' => t('Delete'),
+                'href' => 'asset/delete/' . $asset->id,
+                'attributes' => array(
+                    'class' => array('use-ajax', 'delete-link'),
+                    'data-org-id' => $asset->id, // optional, can use in JS
+                ),
+            ),
+        );
+        $rows[] = array(
+            $asset->id,
+            $asset->name,
+            $wrapperResult['asset_type'],
+            $wrapperResult['asset_condition'],
+            $wrapperResult['asset_organization'],
+            $wrapperResult['assigned_user'],
+            $links
+        );
+    }
+
+    return theme('table', array(
+        'header' => $header,
+        'rows' => $rows,
+    ));
+}
+
+function asset_form_validate($form, &$form_state)
+{
+    if (strlen(trim($form_state['values']['name'])) < 3) {
+        form_set_error('name', t('Name must be at least 3 characters long.'));
+    }
+}
+
+function asset_get_taxonomy_options($vocab_name)
+{
+
+    $options = array();
+    $vocab = taxonomy_vocabulary_machine_name_load($vocab_name);
+
+    if ($vocab) {
+        $terms = taxonomy_get_tree($vocab->vid);
+
+        foreach ($terms as $term) {
+            $options[$term->tid] = $term->name;
+        }
+    }
+
+    return $options;
+}
+
+function asset_form_submit($form, &$form_state)
+{
+    $values = $form_state['values'];
+    $lang = LANGUAGE_NONE;
+    $id = $values['id'];
+
+    $user = user_load_by_name($values['assigned_user']);
+    $organization_id = db_select('organization', 'o')
+        ->fields('o', ['id'])
+        ->condition('name', $values['asset_organization'])
+        ->execute()
+        ->fetchField();
+    if (empty($organization_id)) {
+        form_set_error('asset_organization', t('Invalid organization selected.'));
+        return;
+    }
+
+    // gets entity controller for specified entity type
+    if (!empty($id)) {
+        $asset = assetController()->loadAssetByID($id);
+        $asset->name = $values['name'];
+        $asset->status = $values['status'];
+        $asset->field_custom_asset_type[$lang][0]['tid'] = $values['asset_type'];
+        $asset->field_custom_asset_condition[$lang][0]['tid'] = $values['asset_condition'];
+        $asset->field_custom_asset_organization[$lang][0]['target_id'] = $organization_id;
+        $asset->field_custom_assigned_user[$lang][0]['target_id'] = $user->uid;
+
+
+        assetController()->saveAsset($asset);
+        drupal_set_message(t('Asset %name updated.', array('%name' => $asset->name)));
+        return;
+    } else {
+        $controller = entity_get_controller('asset');
+        $entity = $controller->create(array('type' => 'asset'));
+
+        $id = $form_state['values']['id'];
+        $entity->name = $values['name'];
+        $entity->ssn = $values['ssn'];
+
+        $entity->field_custom_asset_type[$lang][0]['tid'] = $values['asset_type'];
+        $entity->field_custom_asset_condition[$lang][0]['tid'] = $values['asset_condition'];
+        $entity->field_custom_asset_organization[$lang][0]['target_id'] = $organization_id;
+        $entity->field_custom_assigned_user[$lang][0]['target_id'] = $user->uid;
+
+        //  Asset image
+        if (!empty($values['asset_image'])) {
+            $fid = is_array($values['asset_image']) ? $values['asset_image'][0] : $values['asset_image'];
+
+            if ($file = file_load($fid)) {
+                // Make the file permanent
+                $file->status = FILE_STATUS_PERMANENT;
+                file_save($file);
+
+                $lang = LANGUAGE_NONE;
+
+                $entity->field_custom_asset_image[$lang][0] = array(
+                    'fid' => $values['asset_image'],
+                    'display' => 1,
+                    'description' => '',
+                );
+
+                // Critical: Record that this entity is using this file
+                file_usage_add($file, 'asset', 'asset', $fid);
+            }
+        }
+        assetController()->saveAsset($entity);
+        drupal_set_message(t('Asset %name saved.', array('%name' => $entity->name)));
+    }
+}

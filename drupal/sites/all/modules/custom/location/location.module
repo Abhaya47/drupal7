@@ -101,7 +101,8 @@ function location_theme()
     ];
 }
 
-function location_form($form, &$form_state, $id = NULL) {
+function location_form($form, &$form_state, $id = NULL)
+{
 
     if ($id) {
         $location = db_select('location', 'l')
@@ -157,7 +158,8 @@ function location_form($form, &$form_state, $id = NULL) {
     return $form;
 }
 
-function location_form_submit($form, &$form_state) {
+function location_form_submit($form, &$form_state)
+{
 
     $fields = array(
         'code' => $form_state['values']['code'],
@@ -187,14 +189,16 @@ function location_form_submit($form, &$form_state) {
     $form_state['redirect'] = 'location';
 }
 
-function location_form_validate($form, &$form_state) {
+function location_form_validate($form, &$form_state)
+{
     $fields = array();
     foreach ($form_state['values'] as $key => $value) {
 
     }
 }
 
-function location_delete($id) {
+function location_delete($id)
+{
 
     db_delete('location')
         ->condition('id', $id)

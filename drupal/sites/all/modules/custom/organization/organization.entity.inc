@@ -35,6 +35,16 @@ class OrganizationAPIController extends EntityAPIController
         return reset($result);
     }
 
+    public function create(array $values = array())
+    {
+        $values += array(
+            'name' => '',
+            'status' => 1,
+            'created' => REQUEST_TIME,
+        );
+        return parent::create($values);
+    }
+
 
     public function saveOrganization($entity) {
 

@@ -1,0 +1,175 @@
+<?php
+
+/**
+ * Implements hook_schema()
+ */
+function asset_schema()
+{
+    $schema['asset'] = array(
+        'description' => 'Stores asset',
+        'fields' => array(
+            'id' => array(
+                'type' => 'serial',
+                'unsigned' => TRUE,
+                'not null' => TRUE,
+            ),
+            'name' => array(
+                'type' => 'varchar',
+                'length' => 255,
+                'not null' => TRUE,
+            ),
+            'ssn' => array(
+                'type' => 'varchar',
+                'length' => 255,
+                'not null' => TRUE,
+            ),
+            'created' => array(
+                'type' => 'int',
+                'not null' => TRUE,
+                'default' => 0
+            ),
+            'changed' => array(
+                'type' => 'int',
+                'not null' => TRUE,
+                'default' => 0
+            ),
+        ),
+        'primary key' => array('id'),
+
+    );
+    return $schema;
+}
+
+/**
+ * Implements hook_install().
+ * @throws FieldException
+ */
+function asset_install(): void
+{
+    entity_info_cache_clear();
+    field_info_cache_clear();
+
+//    using taxonomy term asset_type
+    field_create_field(array(
+        'field_name' => 'field_custom_asset_type',
+        'type' => 'taxonomy_term_reference',
+    ));
+    field_create_instance(array(
+        'field_name' => 'field_custom_asset_type',
+        'entity_type' => 'asset',
+        'bundle' => 'asset',
+        'label' => t('Asset Type'),
+        'widget' => array(
+            'type' => 'options_select',
+        ),
+        'settings' => array(
+            'allowed_values' => array(
+                array(
+                    'vocabulary' => 'asset_type',
+                    'parent' => 0,
+                ),
+            ),
+        ),
+    ));
+
+//    vocab condition
+    field_create_field(array(
+        'field_name' => 'field_custom_asset_condition',
+        'type' => 'taxonomy_term_reference',
+    ));
+
+    field_create_instance(array(
+        'field_name' => 'field_custom_asset_condition',
+        'entity_type' => 'asset',
+        'bundle' => 'asset',
+        'label' => t('Condition'),
+        'widget' => array(
+            'type' => 'options_select',
+        ),
+        'settings' => array(
+            'allowed_values' => array(
+                array(
+                    'vocabulary' => 'asset_condition',
+                    'parent' => 0,
+                ),
+            ),
+        ),
+    ));
+
+//    organization
+    field_create_field(array(
+            'field_name' => 'field_custom_asset_organization',
+        'type' => 'entityreference',
+        'settings' => array(
+            'target_type' => 'organization',
+        ),
+    ));
+
+    field_create_instance(array(
+        'field_name' => 'field_custom_asset_organization',
+        'entity_type' => 'asset',
+        'bundle' => 'asset',
+        'label' => t('Asset Organization'),
+    ));
+
+//    assigned user
+    field_create_field(array(
+        'field_name' => 'field_custom_assigned_user',
+        'type' => 'entityreference',
+        'settings' => array(
+            'target_type' => 'user',
+        ),
+    ));
+
+    field_create_instance(array(
+        'field_name' => 'field_custom_assigned_user',
+        'entity_type' => 'asset',
+        'bundle' => 'asset',
+        'label' => t('Assigned User'),
+    ));
+
+    field_create_field(array(
+        'field_name' => 'field_custom_asset_image',
+        'type' => 'file',
+    ));
+    field_create_instance(array(
+        'field_name' => 'field_custom_asset_image',
+        'entity_type' => 'asset',
+        'bundle' => 'asset',
+        'label' => t('Logo'),
+        'settings' => array(
+            'file_directory' => 'asset_images',
+            'file_extensions' => 'png jpg jpeg gif',
+            'max_filesize' => '',
+        ),
+    ));
+}
+
+
+function asset_uninstall()
+{
+    // Use the exact machine names from hook_install()
+    $fields = array(
+        'field_custom_assigned_user',
+        'field_custom_asset_organization',
+        'field_custom_asset_condition',
+        'field_custom_asset_type',
+        'field_custom_asset_image'
+    );
+
+    foreach ($fields as $field_name) {
+        // field_delete_field() automatically handles deleting the instances
+        // attached to this field as well, so we only need this one call.
+        $field = field_info_field($field_name);
+        if ($field) {
+            field_delete_field($field_name);
+        }
+    }
+
+    // Purge field data immediately (optional but highly recommended for testing)
+    // Otherwise, the tables linger until Drupal's cron runs.
+    field_purge_batch(1000);
+
+    // Note: No need for drupal_uninstall_schema('organization');
+    // Drupal handles that automatically on uninstall.
+}

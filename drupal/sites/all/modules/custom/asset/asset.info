@@ -2,3 +2,5 @@ name = Assets Module
 description = Drupal module for assets
 core = 7.x
 package = Custom
+dependencies[] = organization
+dependencies[] = user
