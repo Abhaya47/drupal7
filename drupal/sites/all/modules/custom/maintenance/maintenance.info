@@ -1,0 +1,7 @@
+name = Maintenance Module
+description = Drupal module for maintenance
+core = 7.x
+package = Custom
+dependencies[] = organization
+dependencies[] = asset
+dependencies[] = user

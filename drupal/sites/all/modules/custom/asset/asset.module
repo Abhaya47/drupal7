@@ -49,6 +49,13 @@ function asset_menu()
         'type' => MENU_CALLBACK,
     );
 
+    $items['asset/maintenance/%'] = array(
+        'title' => t('Asset Maintenance'),
+        'page callback' => 'asset_maintenance',
+        'page_arguments' => array(2),
+        'access arguments' => array('access content'),
+    );
+
     return $items;
 }
 
@@ -165,7 +172,7 @@ function asset_form($form, &$form_state, $id = NULL)
     $asset = NULL;
     if ($id) {
         $assetEntity = assetController()->loadAssetByID($id);
-        $asset = entityWrapper($assetEntity);
+        $asset = assetEntityWrapper($assetEntity);
     }
 
 
@@ -192,23 +199,29 @@ function asset_form($form, &$form_state, $id = NULL)
      * TAXONOMY SELECTS
      */
 
+    $taxonomy_options = asset_get_taxonomy_options('asset_type');
+    if(!empty($id)){
+        $term_id = array_search($asset['asset_type'], $taxonomy_options);
+    }
     // Asset Type
     $form['asset_type'] = array(
         '#type' => 'select',
         '#title' => t('Asset Type'),
-        '#options' => asset_get_taxonomy_options('asset_type'),
+        '#options' => $taxonomy_options,
         '#empty_option' => t('- Select Type -'),
-        '#default_value' => isset($asset['asset_type']) ? $asset['asset_type'] : '',
-    );
+        '#default_value' => isset($term_id) ? $term_id : '');
 
+    $taxonomy_options = asset_get_taxonomy_options('asset_condition');
+    if(!empty($id)){
+        $term_id = array_search($asset['asset_condition'], $taxonomy_options);
+    }
     // Asset Condition
     $form['asset_condition'] = array(
         '#type' => 'select',
         '#title' => t('Asset Condition'),
         '#options' => asset_get_taxonomy_options('asset_condition'),
         '#empty_option' => t('- Select Condition -'),
-        '#default_value' => isset($asset['asset_condition']) ? $asset['asset_condition'] : '',
-    );
+        '#default_value' => isset($term_id) ? $term_id : '');
 
     /**
      * ENTITY AUTOCOMPLETE
@@ -460,11 +473,11 @@ function asset_delete($id) {
 function asset_view($id)
 {
     $assetEntity = assetController()->loadAssetByID($id);
-    $wrappedAsset = entityWrapper($assetEntity);
+    $wrappedAsset = assetEntityWrapper($assetEntity);
     drupal_add_css(drupal_get_path('module', 'asset') . '/css/asset-view.css');
     return [
         '#theme' => 'asset_view',
-        '#organization' => $wrappedAsset,
+        '#asset' => $wrappedAsset,
     ];
 }
 
@@ -496,4 +509,9 @@ function asset_theme($existing, $type, $theme, $path)
             'path' => drupal_get_path('module', 'asset') . '/templates',
         ),
     );
+}
+
+
+function asset_maintenance($id){
+
 }

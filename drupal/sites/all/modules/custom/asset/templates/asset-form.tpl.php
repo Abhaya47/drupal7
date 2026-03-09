@@ -1,5 +1,9 @@
 <div class="header">
-    ADD ASSET
+    <?php if (!empty($form['id']['#default_value'])): ?>
+        EDIT ASSET
+    <?php else: ?>
+        ADD ASSET
+    <?php endif; ?>
 </div>
 <div class="asset-page">
 

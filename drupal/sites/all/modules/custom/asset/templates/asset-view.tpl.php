@@ -18,6 +18,11 @@
             </div>
             <div>
                 <?php
+                print l(t('Maintenance'), 'asset/maintenance/' . $asset['id'], array('attributes' => array('class' => array('btn', 'btn-edit'))));
+                ?>
+            </div>
+            <div>
+                <?php
                 print l(t('Edit'), 'asset/edit/' . $asset['id'], array('attributes' => array('class' => array('btn', 'btn-edit'))));
                 ?>
             </div>
