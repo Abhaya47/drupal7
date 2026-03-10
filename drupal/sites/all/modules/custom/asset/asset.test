@@ -1,0 +1,89 @@
+<?php
+
+class AssetAdminTestCase extends DrupalWebTestCase {
+
+  public static function getInfo() {
+    return array(
+      'name' => 'Asset Admin Form Test',
+      'description' => 'Tests the Asset form including taxonomy, entity references, and file upload.',
+      'group' => 'Asset',
+    );
+  }
+
+  /**
+   * Set up modules and user.
+   */
+  function setUp() {
+    // Enable required modules.
+    parent::setUp(array(
+      'asset',
+      'taxonomy',
+      'user',
+      'entity',
+      'entityreference',
+      'file',
+    ));
+
+    // Create an admin user with proper permissions.
+    $permissions = array(
+      'access content',
+      'add asset', // Make sure your module defines this in hook_permission()
+    );
+    $this->admin_user = $this->drupalCreateUser($permissions);
+    $this->drupalLogin($this->admin_user);
+
+    // Create a taxonomy term for testing
+    $vid = taxonomy_vocabulary_machine_name_load('asset_type')->vid;
+    $term = new stdClass();
+    $term->name = 'Test Type';
+    $term->vid = $vid;
+    taxonomy_term_save($term);
+    $this->type_tid = $term->tid;
+
+    $vid2 = taxonomy_vocabulary_machine_name_load('asset_condition')->vid;
+    $term2 = new stdClass();
+    $term2->name = 'Good';
+    $term2->vid = $vid2;
+    taxonomy_term_save($term2);
+    $this->condition_tid = $term2->tid;
+
+    // Create a manager user to assign to asset
+    $this->manager = $this->drupalCreateUser();
+
+    $this->org_id = db_insert('organization')
+          ->fields(array(
+            'name' => 'Test Organization',
+          ))
+          ->execute();
+      }
+  }
+
+  /**
+   * Test adding an asset.
+   */
+ function testAssetFormAdd() {
+     $this->drupalGet('asset/add');
+
+     $edit = array(
+       'name' => 'Test Asset',
+       'ssn' => '123-45-6789',
+       'asset_type' => $this->type_tid,
+       'asset_condition' => $this->condition_tid,
+       'asset_organization' => 'Test Organization', // Now this will exist in DB
+       'assigned_user' => $this->manager->name,
+     );
+
+     $this->drupalPost(NULL, $edit, t('Save Asset'));
+
+     // 2. Match the exact string from your asset_form_submit
+     $this->assertText(t('Asset Test Asset saved.'), 'Success message found.');
+
+     // 3. Verify the entity actually exists in the database
+     $asset = db_select('asset', 'a')
+       ->fields('a')
+       ->condition('name', 'Test Asset')
+       ->execute()
+       ->fetchObject();
+
+     $this->assertTrue($asset, 'Asset was found in the database.');
+   }

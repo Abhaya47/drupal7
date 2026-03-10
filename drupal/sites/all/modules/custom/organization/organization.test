@@ -1,0 +1,66 @@
+<?php
+
+class OrganizationAdminTestCase extends DrupalWebTestCase {
+
+  public static function getInfo() {
+    return array(
+      'name' => 'Organization Admin Test',
+      'description' => 'Comprehensive test for Organization form.',
+      'group' => 'Organization',
+    );
+  }
+
+    function setUp() {
+      // 1. Include all necessary modules
+      parent::setUp('organization', 'entity', 'entityreference');
+
+      // 2. Use the EXACT string from your hook_menu 'access arguments'
+      // Ensure 'add organization' is also defined in hook_permission()
+      $permissions = array(
+        'access content',
+        'add organization',
+      );
+
+      $this->admin_user = $this->drupalCreateUser($permissions);
+
+      // 3. Robust check: If user creation fails, the test will stop
+      // with a helpful message instead of a 500 error.
+      if (!$this->admin_user) {
+        $this->fail('User creation failed! Check if "add organization" exists in hook_permission().');
+        return;
+      }
+
+      $this->drupalLogin($this->admin_user);
+    }
+
+  function testAdminFormFlow() {
+    // 3. Navigate to the form
+    $path = 'organization/add';
+    $this->drupalGet($path);
+
+    // 4. STOP if the page is empty to prevent DOMDocument error
+    $content = $this->drupalGetContent();
+    if (empty($content)) {
+      $this->fail('The page at ' . $path . ' returned no content (White Screen of Death).');
+      return;
+    }
+
+    $this->assertResponse(200, 'Form page loaded successfully.');
+
+    // 5. Submit with a manager user
+    $manager = $this->drupalCreateUser();
+    $edit = array(
+      'id' => 1, // Your code requires !empty($id)
+      'name' => 'Test Corp',
+      'user' => $manager->name,
+      'status' => 1,
+      'address' => 'Kathmandu',
+      'phone' => '9800000000',
+    );
+
+    $this->drupalPost(NULL, $edit, t('Save Organization'));
+
+    // 6. Check for the specific success message in your code
+    $this->assertRaw(t('Organization %name updated.', array('%name' => 'Test Corp')));
+  }
+}

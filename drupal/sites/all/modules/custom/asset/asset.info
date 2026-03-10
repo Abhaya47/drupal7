@@ -4,3 +4,7 @@ core = 7.x
 package = Custom
 dependencies[] = organization
 dependencies[] = user
+dependencies[] = entity
+dependencies[] = entityreference
+files[] = asset.test
+files[] = organization.controller.inc
