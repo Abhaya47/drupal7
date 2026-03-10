@@ -18,7 +18,6 @@
 
             <div class="toolbar-right">
                 <?php print l(t('Add'), 'asset/add', array('attributes' => array('class' => array('btn', 'add-btn')))); ?>
-                <!--                <a href="asset/add" class="add-btn">+ Add Asset</a>-->
             </div>
         </div>
 

@@ -1,0 +1,104 @@
+<?php
+
+
+/**
+ * Implements hook_schema().
+ */
+function maintenance_schema()
+{
+    $schema['maintenance'] = array(
+        'description' => 'Stores Maintenance entities',
+        'fields' => array(
+            'id' => array(
+                'type' => 'serial',
+                'unsigned' => TRUE,
+                'not null' => TRUE,
+            ),
+            'type' => array(
+                'type' => 'varchar',
+                'length' => 32,
+                'not null' => TRUE,
+                'default' => 'maintenance',
+            ),
+            'created' => array(
+                'type' => 'int',
+                'not null' => TRUE,
+                'default' => 0
+            ),
+            'changed' => array(
+                'type' => 'int',
+                'not null' => TRUE,
+                'default' => 0
+            ),
+        ),
+        'primary key' => array('id'),
+    );
+
+    return $schema;
+}
+
+/**
+ * Implements hook_install().
+ */
+function maintenance_install()
+{
+    entity_info_cache_clear();
+    field_info_cache_clear();
+
+    field_create_field(array(
+      'field_name' => 'field_custom_maintenance_asset',
+      'type' => 'entityreference',
+      'settings' => array(
+        'target_type' => 'asset',
+      ),
+    ));
+
+    field_create_instance(array(
+      'field_name' => 'field_custom_maintenance_asset',
+      'entity_type' => 'maintenance',
+      'bundle' => 'maintenance',
+      'label' => t('Asset'),
+    ));
+
+    field_create_field(array(
+      'field_name' => 'field_custom_maintenance_status',
+      'type' => 'taxonomy_term_reference',
+    ));
+
+    field_create_instance(array(
+      'field_name' => 'field_custom_maintenance_status',
+      'entity_type' => 'maintenance',
+      'bundle' => 'maintenance',
+      'label' => t('Maintenance Status'),
+      'widget' => array(
+        'type' => 'options_select',
+      ),
+      'settings' => array(
+        'allowed_values' => array(
+          array(
+            'vocabulary' => 'status',
+            'parent' => 0,
+          ),
+        ),
+      ),
+    ));
+}
+
+function maintenance_uninstall(){
+    $fields = array(
+        'field_custom_maintenance_status',
+        'field_custom_maintenance_asset'
+    );
+
+    foreach ($fields as $field_name) {
+        // field_delete_field() automatically handles deleting the instances
+        // attached to this field as well, so we only need this one call.
+        $field = field_info_field($field_name);
+        if ($field) {
+            field_delete_field($field_name);
+        }
+    }
+
+    field_purge_batch(1000);
+
+}

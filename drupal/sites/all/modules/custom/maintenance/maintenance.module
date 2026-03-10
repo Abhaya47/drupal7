@@ -1,0 +1,25 @@
+<?php
+
+function maintenance_entity_info()
+{
+    $return['maintenance'] = array(
+        'label' => t('Maintenance'),
+        'base table' => 'maintenance',
+        'controller class' => 'EntityAPIController',
+        'fieldable' => TRUE,
+        'entity keys' => array(
+            'id' => 'id',
+            'bundle' => 'type', // required, even for single-bundle
+        ),
+        'bundle keys' => array(
+            'bundle' => 'type',
+        ),
+        'bundles' => array(
+            'maintenance' => array(
+                'label' => t('Maintenance'),
+            ),
+        ),
+        'module' => 'maintenance',
+    );
+    return $return;
+}

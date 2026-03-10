@@ -52,7 +52,7 @@ function asset_menu()
     $items['asset/maintenance/%'] = array(
         'title' => t('Asset Maintenance'),
         'page callback' => 'asset_maintenance',
-        'page_arguments' => array(2),
+        'page arguments' => array(2),
         'access arguments' => array('access content'),
     );
 
@@ -513,5 +513,90 @@ function asset_theme($existing, $type, $theme, $path)
 
 
 function asset_maintenance($id){
+//    add item to queue
+    $queue = DrupalQueue::get('asset_maintenance_queue');
+    $queue->createItem(array('asset_id' => $id));
+}
 
+/**
+ * Implements hook_cron_queue_info().
+ */
+function asset_cron_queue_info() {
+    $queues['asset_maintenance_queue'] = array(
+        'worker callback' => 'asset_asset_maintenance_worker', // The function that does the work
+        'time' => 60, // Max number of seconds to spend processing this queue during cron
+    );
+    return $queues;
+}
+
+function asset_asset_maintenance_worker($data) {
+    $asset_id = $data['asset_id'];
+
+    $values = array(
+        'type' => 'maintenance',
+        'created' => REQUEST_TIME,
+        'changed' => REQUEST_TIME,
+    );
+
+    $maintenance = entity_create('maintenance', $values);
+
+//    using wrapper for lazy laoding
+
+    $m_wrapper = entity_metadata_wrapper('maintenance', $maintenance);
+    $m_wrapper->field_custom_maintenance_asset->set($asset_id);
+
+    $taxonomy_options = asset_get_taxonomy_options('status');
+    $term_id = array_search('Waiting', $taxonomy_options);
+    if ($term_id) {
+        $m_wrapper->field_custom_maintenance_status->set($term_id);
+    }
+    $m_wrapper->save();
+
+//    finding manager and setting up area dor mail
+    $asset_wrapper = entity_metadata_wrapper('asset', $asset_id);
+    $organization_wrapper = $asset_wrapper->field_custom_asset_organization;
+
+    $manager_email='';
+    if ($organization_wrapper->value()) {
+        $user_wrapper = $organization_wrapper->field_custom_manager;
+        if($user_wrapper->value()) {
+            $manager_email = $user_wrapper->mail;
+        }
+
+        $owner_email = 'abhayanepal.47@gmail.com';
+
+        $params = array(
+            'asset' => $asset_wrapper->value(),
+            'maintenance' => $m_wrapper->value(),
+        );
+        $language = language_default();
+
+        // Send Mail to Owner
+        if (!empty($owner_email)) {
+            drupal_mail('asset', 'maintenance_req_owner', $owner_email, $language, $params);
+        }
+
+        // Send Mail to Manager
+        if (!empty($manager_email)) {
+            drupal_mail('asset', 'maintenance_req_manager', $manager_email, $language, $params);
+        }
+    }
+}
+
+/**
+ * Implements hook_mail().
+ */
+function asset_mail($key, &$message, $params) {
+    $asset = $params['asset'];
+    switch ($key) {
+        case 'maintenance_req_owner':
+            $message['subject'] = t('Maintenance Request for', array('!name' => $asset->title));
+            $message['body'][] = t('A maintenance request has been initiated for your asset.', array('!title' => $asset->title));
+            break;
+
+        case 'maintenance_req_manager':
+            $message['subject'] = t('Maintenance Request Sent - Wait');
+            $message['body'][] = t('A maintenance request has been sent for an asset. Please wait for further updates.', array('!title' => $asset->title));
+            break;
+    }
 }
