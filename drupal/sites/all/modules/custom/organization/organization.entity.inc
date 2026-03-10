@@ -2,9 +2,9 @@
 
 class OrganizationAPIController extends EntityAPIController
 {
-    public function loadOrganization($filter = NULL)
+    public function loadOrganization($filter = NULL, $search = NULL)
     {
-        $result = $this->organizationLoadQuery($filter);
+        $result = $this->organizationLoadQuery($filter, $search);
         if (!empty($result['organization'])) {
             $ids = array_keys($result['organization']);
             $entities = entity_load('organization', $ids);
@@ -13,7 +13,7 @@ class OrganizationAPIController extends EntityAPIController
         return [];
     }
 
-    private function organizationLoadQuery($filter)
+    private function organizationLoadQuery($filter, $search)
     {
         global $user;
         $query = new EntityFieldQuery();
@@ -22,9 +22,21 @@ class OrganizationAPIController extends EntityAPIController
         {
             $query->fieldCondition('field_custom_manager', 'target_id', $user->uid);
         }
-        if($filter)
+        if($filter && $filter !== 'all')
         {
+            switch ($filter){
+                case 'active' :
+                    $filter = 1;
+                    break;
+                case 'inactive' :
+                    $filter = 0;
+                    break;
+            }
             $query->propertyCondition('status', $filter);
+        }
+        if (!empty($search)){
+            $searchEscaped = addcslashes($search, '%_'); // escape % and _ for LIKE
+            $query->propertyCondition('name', "%$searchEscaped%", 'LIKE');
         }
         $query->pager(10);
         return $query->execute();

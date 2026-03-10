@@ -11,21 +11,23 @@ function organization_menu()
         'title' => t('Organization'),
         'page callback' => 'organization_list_page',
         'access callback' => TRUE,
-        'access arguments' => array('access content'),
+        'access arguments' => array('view organization'),
     );
 
     $items['organization/add'] = array(
         'title' => t('Add Organization'),
         'page callback' => 'drupal_get_form',
         'page arguments' => array('organization_form'),
-        'access arguments' => array('access content'),
+        'access arguments' => array('add organization'),
+        'access callback' => 'organization_add_access',
     );
 
     $items['organization/edit/%'] = array(
         'title' => t('Edit Organization'),
         'page callback' => 'drupal_get_form',
         'page arguments' => array('organization_form', 2),
-        'access arguments' => array('access content'),
+        'access callback' => 'organization_edit_access',
+        'access arguments' => array(2),
 
     );
 
@@ -33,7 +35,8 @@ function organization_menu()
         'title' => t('Delete Organization'),
         'page callback' => 'organization_delete',
         'page arguments' => array(2),
-        'access arguments' => array('administer site configuration'),
+        'access arguments' => array(2),
+        'access callback' => 'organization_delete_access',
 
     );
 
@@ -41,10 +44,87 @@ function organization_menu()
         'title' => t('View Organization'),
         'page callback' => 'organization_view',
         'page arguments' => array(2),
-        'access arguments' => array('access content'),
+        'access arguments' => array(2),
+        'access callback' => 'organization_view_access',
+
     );
 
     return $items;
+}
+
+/**
+ * PERMISSION HOOK
+ */
+function organization_permission() {
+    return array(
+        'add organization' => array(
+            'title' => t('Add organization'),
+        ),
+        'edit organization' => array(
+            'title' => t('Edit organization'),
+        ),
+        'delete organization' => array(
+            'title' => t('Delete organization'),
+        ),
+        'view organization' => array(
+            'title' => t('View organization'),
+        ),
+    );
+}
+
+function organization_edit_access($id) {
+
+    global $user;
+
+    // Admin can always edit
+    if (user_access('administer site configuration')) {
+        return TRUE;
+    }
+
+    return FALSE;
+}
+
+function organization_view_access($id) {
+    global $user;
+
+    // Admin can always edit
+    if (user_access('administer site configuration')) {
+        return TRUE;
+    }
+
+    // Load the organization
+    $organization = organizationController()->loadOrganizationByID($id);
+    $wrappedOrganization =entityWrapper($organization);
+
+    if (!$organization) {
+        return FALSE;
+    }
+    // Check if current user owns the organization
+    if ($wrappedOrganization['manager_name'] == $user->name) {
+        return TRUE;
+    }
+
+    return FALSE;
+}
+
+function organization_delete_access($id) {
+    global $user;
+
+    // Admin can always edit
+    if (user_access('administer site configuration')) {
+        return TRUE;
+    }
+    return FALSE;
+}
+
+function organization_add_access() {
+    global $user;
+
+    // Admin can always edit
+    if (user_access('administer site configuration')) {
+        return TRUE;
+    }
+    return FALSE;
 }
 
 /*
@@ -141,6 +221,7 @@ function entityWrapper($org)
 
 function organization_list_page()
 {
+
     $build['organizations_wrapper'] = array(
         '#type' => 'container',
         '#attributes' => array('id' => 'organizations-wrapper'),
@@ -149,8 +230,17 @@ function organization_list_page()
     $header = array(t('Id'), t('Organization Name'), t('Address'), t('Manager'), t('Phone'), t('Operations'));
 
     $rows = array();
+
+    $params = drupal_get_query_parameters();
+
+    $search = isset($params['search']) ? $params['search'] : '';
+    $filter = isset($params['status']) ? $params['status'] : '';
+
+    $filter_form = drupal_get_form('organization_filter_form');
+
+
     // loads all organizations
-    $organizations = organizationController()->loadOrganization();
+    $organizations = organizationController()->loadOrganization($filter, $search);
     foreach ($organizations as $org) {
         $wrapperResult = entityWrapper($org);
 
@@ -175,22 +265,24 @@ function organization_list_page()
         );
         // Add row to the table
         $rows[] = array(
-            $org->id,
-            $org->name,
-            $wrapperResult['address'],
-            $wrapperResult['manager_name'],
-            $wrapperResult['phone'],
+            check_plain($org->id),
+            check_plain($org->name),
+            check_plain($wrapperResult['address']),
+            check_plain($wrapperResult['manager_name']),
+            check_plain($wrapperResult['phone']),
             $links
         );
     }
+
 
     $build['organizations_wrapper']['table'] = array(
         '#theme' => 'organization_list',
         '#header' => $header,
         '#rows' => $rows,
         '#empty' => t('No organizations found'),
+        '#filter_form' => $filter_form,
     );
-    
+
 
     $build['pager'] = array(
         '#theme' => 'pager',
@@ -284,11 +376,58 @@ function organization_form($form, &$form_state, $id = NULL)
         'scope' => 'header',
         'weight' => -18,
     );
+
     $form['#attributes']['id'] = 'organization-form';
     $form['#theme'] = 'organization_form_template';
     $form['#attached']['css'][] = drupal_get_path('module', 'organization') . '/css/organization-form.css';
 
     return $form;
+}
+
+/**
+ * Separate Filter Form Builder
+ */
+function organization_filter_form($form, &$form_state) {
+    $params = drupal_get_query_parameters();
+    $form['search'] = array(
+        '#type' => 'textfield',
+        '#default_value' => isset($params['search']) ? $params['search'] : '',
+        '#attributes' => array('placeholder' => t('Search organizations...'), 'id' => 'table-search'),
+    );
+
+    $form['status'] = array(
+        '#type' => 'select',
+        '#options' => array(
+            'all' => t('All Status'),
+            'active' => t('Active'),
+            'inactive' => t('Inactive'),
+        ),
+        '#default_value' => isset($params['status']) ? $params['status'] : 'all',
+        '#attributes' => array('id' => 'status-filter'),
+    );
+
+    $form['submit'] = array(
+        '#type' => 'submit',
+        '#value' => t('Filter'),
+    );
+
+    return $form;
+}
+
+/**
+ * Filter Submit Handler
+ */
+function organization_filter_form_submit($form, &$form_state) {
+    $query = array();
+    if (!empty($form_state['values']['search'])) {
+        $query['search'] = $form_state['values']['search'];
+    }
+    if ($form_state['values']['status'] !== 'all') {
+        $query['status'] = $form_state['values']['status'];
+    }
+    var_dump($query);
+    // Redirects to current page with ?search=xyz&status=active
+    $form_state['redirect'] = array(current_path(), array('query' => $query));
 }
 
 function organization_form_validate($form, &$form_state)
@@ -408,12 +547,13 @@ function organization_view($id)
 //Theme hook
 function organization_theme($existing, $type, $theme, $path)
 {
-    return array(
+    $result = array(
         'organization_list' => array(
             'variables' => array(
                 'header' => NULL,
                 'rows' => NULL,
                 'empty' => NULL,
+                'filter_form' => array(),
             ),
             'template' => 'organization-list',
             'path' => drupal_get_path('module', 'organization') . '/templates',
@@ -431,4 +571,5 @@ function organization_theme($existing, $type, $theme, $path)
             'path' => drupal_get_path('module', 'organization') . '/templates',
         ),
     );
+    return $result;
 }
