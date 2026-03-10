@@ -24,15 +24,28 @@ A quick guide to where the important bits live:
 Custom Modules
 
 The list of custom modules created and their use
-    /sites/all/modules/custom/alter_login_form: Used to alter default login page to add clientside validation
-    /sites/all/modules/custom/organization: An entity based module for organization where user can create, add, view, edit organizations. Permissions implemented. Custom themes created. Tests included
-    /sites/all/modules/custom/asset: An entity based module for user assets. Additional implementation of drupal queue and mail. The queue adds data to maintenance table
-    /sites/all/modules/custom/maintenance: An entity based module that uses default views to show data
-    /sites/all/modules/custom/dashboard: Uses google graph api to show data.
+    /sites/all/modules/custom/alter_login_form:
+        Description:
+            Used to alter default login page to add clientside validation
+    /sites/all/modules/custom/organization:
+        Description:
+            An entity based module for organization where user can create, add, view, edit organizations. Permissions implemented. Custom themes created. Tests included
+
+    /sites/all/modules/custom/asset:
+        Description:
+            An entity based module for user assets. Additional implementation of drupal queue and mail. The queue adds data to maintenance table.
+            Depends on organization and user module.
+    /sites/all/modules/custom/maintenance:
+        Description:
+            An entity based module that uses default views to show data.
+    /sites/all/modules/custom/dashboard:
+        Description:
+            Uses google graph api to show data.
     /sites/all/modules/custom/location: A form used to store location data. No entity
     /sites/all/modules/custom/alterform: Used to alter location form
 
-The list of contribed modules used
+Contributed MODULES
+
     charts
     ctools
     entity
@@ -44,5 +57,7 @@ The list of contribed modules used
     views
     webform
 
+Installation & Setup
+    Use installation_guide to setup a docker instance
 
 Contributor: Abhaya Nepal
