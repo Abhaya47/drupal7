@@ -1,5 +1,98 @@
 <?php
 
-function adminimal_dashboard_theme_settings_alter(&$form, &$form_state) {
+/**
+ * @file
+ * Dashboard module to display a custom page with Google Charts.
+ */
 
+/**
+ * Implements hook_menu().
+ */
+function dashboard_menu()
+{
+    $items = array();
+
+    $items['dashboard'] = array(
+        'title' => 'My Data Dashboard',
+        'description' => 'View site statistics and charts.',
+        'page callback' => 'dashboard_page_render',
+        'access arguments' => array('access site reports'),
+        'type' => MENU_NORMAL_ITEM,
+    );
+
+    return $items;
+}
+
+/**
+ * Implements hook_theme().
+ * Now points to the dashboard.tpl.php file using the 'template' key.
+ */
+function dashboard_theme($existing, $type, $theme, $path) {
+    return array(
+        'dashboard_layout' => array(
+            // Ensure these keys match the # keys you return in dashboard_page_render
+            'variables' => array(
+                'chart_org' => NULL,
+                'chart_maint' => NULL,
+                'chart_assets' => NULL,
+            ),
+            'template' => 'dashboard',
+            'path' => drupal_get_path('module', 'dashboard') . '/templates',
+        ),
+    );
+}
+
+function dashboard_page_render() {
+    // --- CHART 1: Organization Status (Pie Chart) ---
+    $org_query = db_query("SELECT status, COUNT(*) as count FROM {organization} GROUP BY status")->fetchAllKeyed();
+
+    // 2. Define our human-readable labels
+    $status_labels = array(
+        0 => t('Inactive'),
+        1 => t('Active'),
+    );
+
+    $labels = array();
+    $counts = array();
+
+    // 3. Process data for Google Charts
+    foreach ($org_query as $status_id => $count) {
+        // Look up the label, fallback to the ID if not found, and cast to string
+        $labels[] = isset($status_labels[$status_id]) ? (string) $status_labels[$status_id] : (string) $status_id;
+        $counts[] = (int) $count;
+    }
+
+    $chart_org = array(
+        '#type' => 'chart',
+        '#chart_id' => 'dashboard_org_status',
+        '#chart_type' => 'pie',
+        '#chart_library' => 'google',
+        '#title' => t('Organization Status'),
+    );
+
+    $chart_org['data'] = array(
+        '#type' => 'chart_data',
+        '#title' => t('Organizations'),
+        '#labels' => $labels, // These are now guaranteed strings
+        '#data' => $counts,   // These are now guaranteed numbers
+    );
+
+
+    return array(
+        '#theme' => 'dashboard_layout',
+        '#chart_org' => $chart_org,
+    );
+}
+/**
+ * Implements hook_chart_alter().
+ */
+function dashboard_chart_alter(&$chart, $chart_id) {
+    if ($chart_id === 'dashboard_org_status') {
+        $chart['#raw_options']['is3D'] = TRUE;
+        $chart['#raw_options']['pieHole'] = 0.4;
+
+        // Assign specific colors: Green for Active, Red for Inactive
+        // Google applies colors in the order the data appears in the array
+        $chart['#raw_options']['colors'] = array('#e74c3c', '#2ecc71');
+    }
 }

@@ -3,3 +3,9 @@ description = Dashboard module
 core = 7.x
 package = Custom
 dependencies[] = user
+dependencies[] = organization
+dependencies[] = asset
+dependencies[] = charts
+dependencies[] = charts_google
+
+
