@@ -377,7 +377,11 @@ function asset_form_validate($form, &$form_state)
     }
 }
 
-function asset_get_taxonomy_options($vocab_name)
+/**
+ * @param $vocab_name
+ * @return array
+ */
+function asset_get_taxonomy_options($vocab_name): array
 {
 
     $options = array();

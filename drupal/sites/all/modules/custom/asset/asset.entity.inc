@@ -18,9 +18,10 @@ class AssetAPIController extends EntityAPIController
         global $user;
         $query = new EntityFieldQuery();
         $query->entityCondition('entity_type', 'asset');
-        if($filter)
-        {
-            $query->propertyCondition('status', $filter);
+        if($filter){
+            $taxonomy_options = asset_get_taxonomy_options('asset_condition');
+            $term_id = array_search($filter, $taxonomy_options);
+            $query->fieldCondition('field_custom_asset_condition', 'tid', $term_id);
         }
         $query->pager(10);
         return $query->execute();

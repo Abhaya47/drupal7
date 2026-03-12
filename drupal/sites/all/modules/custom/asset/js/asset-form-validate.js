@@ -9,9 +9,7 @@
                     },
                     'ssn': {
                         required: true,
-                        digits: true,
                         minlength: 9,
-                        maxlength: 9
                     },
                     'asset_type': {
                         required: true
