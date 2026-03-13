@@ -73,11 +73,22 @@ function organization_permission() {
 }
 
 function organization_edit_access($id) {
-
     global $user;
 
     // Admin can always edit
     if (user_access('administer site configuration')) {
+        return TRUE;
+    }
+
+    // Load the organization
+    $organization = organizationController()->loadOrganizationByID($id);
+    $wrappedOrganization =entityWrapper($organization);
+
+    if (!$organization) {
+        return FALSE;
+    }
+    // Check if current user owns the organization
+    if ($wrappedOrganization['manager_name'] == $user->name) {
         return TRUE;
     }
 
@@ -112,6 +123,17 @@ function organization_delete_access($id) {
 
     // Admin can always edit
     if (user_access('administer site configuration')) {
+        return TRUE;
+    }
+    // Load the organization
+    $organization = organizationController()->loadOrganizationByID($id);
+    $wrappedOrganization =entityWrapper($organization);
+
+    if (!$organization) {
+        return FALSE;
+    }
+    // Check if current user owns the organization
+    if ($wrappedOrganization['manager_name'] == $user->name) {
         return TRUE;
     }
     return FALSE;
@@ -425,7 +447,6 @@ function organization_filter_form_submit($form, &$form_state) {
     if ($form_state['values']['status'] !== 'all') {
         $query['status'] = $form_state['values']['status'];
     }
-    var_dump($query);
     // Redirects to current page with ?search=xyz&status=active
     $form_state['redirect'] = array(current_path(), array('query' => $query));
 }
