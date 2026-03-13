@@ -1,5 +1,9 @@
 <div class="header">
-    ADD ORGANIZATION
+    <?php if (!empty($form['id']['#default_value'])): ?>
+        EDIT ORGANIZATION
+    <?php else: ?>
+        ADD ORGANIZATION
+    <?php endif; ?>
 </div>
 <div class="organization-page">
 
