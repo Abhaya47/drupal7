@@ -44,8 +44,11 @@ function dashboard_theme($existing, $type, $theme, $path) {
 
 function dashboard_page_render() {
     // --- CHART 1: Organization Status (Pie Chart) ---
-    $org_query = db_query("SELECT status, COUNT(*) as count FROM {organization} GROUP BY status")->fetchAllKeyed();
-
+    $query = db_select('organization', 'o');
+    $query->addField('o', 'status');
+    $query->addExpression('COUNT(*)', 'count');
+    $query->groupBy('o.status');
+    $org_query = $query->execute()->fetchAllKeyed();
     // 2. Define our human-readable labels
     $status_labels = array(
         0 => t('Inactive'),
@@ -55,9 +58,9 @@ function dashboard_page_render() {
     $labels = array();
     $counts = array();
 
+
     // 3. Process data for Google Charts
     foreach ($org_query as $status_id => $count) {
-        // Look up the label, fallback to the ID if not found, and cast to string
         $labels[] = isset($status_labels[$status_id]) ? (string) $status_labels[$status_id] : (string) $status_id;
         $counts[] = (int) $count;
     }
