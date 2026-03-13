@@ -18,7 +18,10 @@ class AssetAPIController extends EntityAPIController
         global $user;
         $query = new EntityFieldQuery();
         $query->entityCondition('entity_type', 'asset');
-        if($filter){
+        if (!in_array('administrator', $user->roles)) {
+            $query->addTag('asset_user');
+        }
+        if ($filter) {
             $taxonomy_options = asset_get_taxonomy_options('asset_condition');
             $term_id = array_search($filter, $taxonomy_options);
             $query->fieldCondition('field_custom_asset_condition', 'tid', $term_id);
@@ -27,13 +30,15 @@ class AssetAPIController extends EntityAPIController
         return $query->execute();
     }
 
-    public function loadAssetByID($assetID){
+    public function loadAssetByID($assetID)
+    {
         $result = entity_load('asset', [$assetID]);
         return reset($result);
     }
 
 
-    public function saveAsset($entity) {
+    public function saveAsset($entity)
+    {
 
         if (empty($entity->created)) {
             $entity->created = REQUEST_TIME;
@@ -53,7 +58,8 @@ class AssetAPIController extends EntityAPIController
         return parent::create($values);
     }
 
-    public function deleteAsset($id) {
+    public function deleteAsset($id)
+    {
         entity_delete('asset', $id);
     }
 
