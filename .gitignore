@@ -1,2 +1,3 @@
 /infrastructure/db_data/*
 .idea
+/drupal/sites/default/files/simpletest/verbose/*
