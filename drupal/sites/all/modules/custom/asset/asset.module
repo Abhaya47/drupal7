@@ -44,7 +44,7 @@ function asset_menu()
         'page callback' => 'asset_view',
         'page arguments' => array(2),
         'access arguments' => array(2),
-        'access callback' => 'asset_view_access',    );
+        'access callback' => 'asset_view_access',);
 
     $items['organization/autocomplete'] = array(
         'page callback' => 'organization_autocomplete',
@@ -62,7 +62,8 @@ function asset_menu()
     return $items;
 }
 
-function asset_edit_access($id) {
+function asset_edit_access($id)
+{
 
     global $user;
 
@@ -74,7 +75,8 @@ function asset_edit_access($id) {
     return assetAccessQuery($id);
 }
 
-function asset_view_access($id) {
+function asset_view_access($id)
+{
     global $user;
 
     // Admin can always edit
@@ -86,7 +88,8 @@ function asset_view_access($id) {
     return assetAccessQuery($id);
 }
 
-function asset_delete_access($id) {
+function asset_delete_access($id)
+{
     global $user;
 
     // Admin can always edit
@@ -96,7 +99,8 @@ function asset_delete_access($id) {
     return assetAccessQuery($id);
 }
 
-function asset_add_access() {
+function asset_add_access()
+{
     global $user;
 
     // Admin can always edit
@@ -115,9 +119,9 @@ function assetAccessQuery($id): bool
     $query->join('field_data_field_custom_asset_organization', 'fco', "fco.entity_id = a.id");
     $query->join('organization', 'o', 'o.id = fco.field_custom_asset_organization_target_id');
     $query->join('field_data_field_custom_manager', 'fcm', 'fcm.entity_id = o.id');
-    $query->condition('fcm.field_custom_manager_target_id' ,$user->uid);
+    $query->condition('fcm.field_custom_manager_target_id', $user->uid);
     $result = $query->execute()->fetchField();
-    return((bool) $result);
+    return ((bool)$result);
 }
 
 /**
@@ -375,12 +379,99 @@ function organization_autocomplete($string)
     drupal_json_output($matches);
 }
 
-function asset_list_page()
+//filter form
+function asset_filter($form, &$form_state)
 {
+    $params = drupal_get_query_parameters();
+//    $form['search'] = array(
+//        '#type' => 'textfield',
+//        '#default_value' => isset($params['search']) ? $params['search'] : '',
+//        '#attributes' => array('placeholder' => t('Search organizations...'), 'id' => 'table-search'),
+//    );
+
+    $taxonomy_options = asset_get_taxonomy_options('asset_condition');
+
+    $form['status'] = array(
+        '#type' => 'select',
+        '#options' => $taxonomy_options,
+        '#default_value' => isset($form['status']) ? $form['status'] : '',
+        '#ajax' => array(
+            'callback' => 'test_callback',
+            'wrapper' => 'assets-wrapper',
+        ),
+    );
+
+//    $build['#attached']['js'][] = drupal_get_path('module', 'asset') . '/js/filter-ajax.js';
+    return $form;
+}
+
+//ajax callback
+function test_callback($form, &$form_state)
+{
+
+    $selected_status = $form_state['values']['status'];
     $build['assets_wrapper'] = array(
         '#type' => 'container',
         '#attributes' => array('id' => 'assets-wrapper'),
     );
+    $header = array(t('Id'), t('Name'), t('Asset Type'), t('Asset Condition'), t('Organization'), t('Assigned User'), t('Operations'));
+    $assets = assetController()->loadAsset($selected_status);
+    foreach ($assets as $asset) {
+        $wrapperResult = assetEntityWrapper($asset);
+        $links = array();
+
+        $links = array(
+            'view' => array(
+                'title' => t('View'),
+                'href' => 'asset/view/' . $asset->id,
+            ),
+            'edit' => array(
+                'title' => t('Edit'),
+                'href' => 'asset/edit/' . $asset->id,
+            ),
+            'delete' => array(
+                'title' => t('Delete'),
+                'href' => 'asset/delete/' . $asset->id,
+                'attributes' => array(
+                    'class' => array('use-ajax', 'delete-link'),
+                    'data-org-id' => $asset->id, // optional, can use in JS
+                ),
+            ),
+        );
+        $rows[] = array(
+            $asset->id,
+            $asset->name,
+            $wrapperResult['asset_type'],
+            $wrapperResult['asset_condition'],
+            $wrapperResult['asset_organization'],
+            $wrapperResult['assigned_user'],
+            $links
+        );
+    }
+
+
+    $build['assets_wrapper']['table'] = array(
+        '#theme' => 'asset_list',
+        '#header' => $header,
+        '#rows' => $rows,
+        '#filter_form' => $form,
+        '#empty' => t('No assets found'),
+    );
+    return $build;
+}
+
+//main list assets
+function asset_list_page()
+{
+    $form = drupal_get_form('asset_filter');
+//    $form = drupal_get_form('ajax_example_simplest');
+    $build['assets_wrapper'] = array(
+        '#type' => 'container',
+        '#attributes' => array('id' => 'assets-wrapper'),
+        '#prefix' => '<div id="assets-wrapper">',
+        '#suffix' => '</div>',
+    );
+
 
     $header = array(t('Id'), t('Name'), t('Asset Type'), t('Asset Condition'), t('Organization'), t('Assigned User'), t('Operations'));
 
@@ -417,17 +508,18 @@ function asset_list_page()
         );
     }
 
-    $build['assets_wrapper_wrapper']['table'] = array(
+    $build['assets_wrapper']['pager'] = array(
+        '#theme' => 'pager',
+    );
+    $build['assets_wrapper']['table'] = array(
         '#theme' => 'asset_list',
         '#header' => $header,
         '#rows' => $rows,
+        '#filter_form' => $form,
         '#empty' => t('No assets found'),
     );
 
 
-    $build['pager'] = array(
-        '#theme' => 'pager',
-    );
     $build['#attached']['css'][] = drupal_get_path('module', 'asset') . '/css/asset-list.css';
     return $build;
 }
@@ -566,7 +658,9 @@ function asset_theme($existing, $type, $theme, $path)
             'variables' => array(
                 'header' => NULL,
                 'rows' => NULL,
+                'pager' => NULL,
                 'empty' => NULL,
+                'filter_form' => NULL,
             ),
             'template' => 'asset-list',
             'path' => drupal_get_path('module', 'asset') . '/templates',

@@ -4,6 +4,7 @@ class AssetAPIController extends EntityAPIController
 {
     public function loadAsset($filter = NULL)
     {
+
         $result = $this->assetLoadQuery($filter);
         if (!empty($result['asset'])) {
             $ids = array_keys($result['asset']);
@@ -22,9 +23,8 @@ class AssetAPIController extends EntityAPIController
             $query->addTag('asset_user');
         }
         if ($filter) {
-            $taxonomy_options = asset_get_taxonomy_options('asset_condition');
-            $term_id = array_search($filter, $taxonomy_options);
-            $query->fieldCondition('field_custom_asset_condition', 'tid', $term_id);
+
+            $query->fieldCondition('field_custom_asset_condition', 'tid', $filter);
         }
         $query->pager(10);
         return $query->execute();
