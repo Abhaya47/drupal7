@@ -418,7 +418,6 @@ function test_callback($form, &$form_state)
     $assets = assetController()->loadAsset($selected_status);
     foreach ($assets as $asset) {
         $wrapperResult = assetEntityWrapper($asset);
-        $links = array();
 
         $links = array(
             'view' => array(

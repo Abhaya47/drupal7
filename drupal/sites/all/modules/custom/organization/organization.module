@@ -80,6 +80,9 @@ function organization_edit_access($id) {
         return TRUE;
     }
 
+    if (user_access('edit organization')) {
+        return TRUE;
+    }
     // Load the organization
     $organization = organizationController()->loadOrganizationByID($id);
     $wrappedOrganization =entityWrapper($organization);
@@ -241,6 +244,7 @@ function entityWrapper($org)
     );
 }
 
+//main list organizations page
 function organization_list_page()
 {
 
@@ -280,7 +284,7 @@ function organization_list_page()
                 'title' => t('Delete'),
                 'href' => 'organization/delete/' . $org->id,
                 'attributes' => array(
-                    'class' => array('use-ajax', 'delete-link'),
+//                    'class' => array('use-ajax', 'delete-link'),
                     'data-org-id' => $org->id, // optional, can use in JS
                 ),
             ),
