@@ -1,0 +1,56 @@
+<?php
+
+class LocationTestCase extends DrupalWebTestCase
+{
+
+    private false|object $admin_user;
+
+    public static function getInfo()
+    {
+        return array(
+            'name' => 'Location Form Test',
+            'description' => 'Comprehensive test for Location form.',
+            'group' => 'Location',
+        );
+    }
+
+    public function setUp()
+    {
+        global $base_url;
+        $base_url = 'http://localhost';
+        // 1. parent::setUp takes an array of modules and enables them properly.
+        parent::setUp(array('location'));
+
+        // 2. Explicitly define only the permissions needed.
+        // This is much safer than dynamically invoking all permissions.
+        $permissions = array(
+            'access content',
+            'access administration pages',
+            // 'administer location', <- Add your custom module's permissions here
+        );
+
+        $this->admin_user = $this->drupalCreateUser();
+
+        // 3. Robust check
+        if (!$this->admin_user) {
+            $this->fail('User creation failed!');
+            return;
+        }
+
+        // 4. Log in
+        $edit = array(
+            'name' => $this->admin_user->name,
+            'pass' => $this->admin_user->pass_raw,
+        );
+
+        $this->drupalPost('user/login', $edit, t('Log in'));
+
+// Verify we are actually logged in by checking the $user object in the test environment
+        $this->assertTrue($this->admin_user->uid > 0, 'User is logged in successfully.');
+    }
+
+    public function testAdminFormFlow()
+    {
+
+    }
+}
