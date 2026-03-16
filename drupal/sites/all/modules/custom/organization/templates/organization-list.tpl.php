@@ -24,9 +24,9 @@
             </div>
         </form>
 
-            <div class="toolbar-right">
-                <?php print l(t('Add'), 'organization/add', array('attributes' => array('class' => array('btn', 'add-btn')))); ?>
-            </div>
+        <div class="toolbar-right">
+            <?php print l(t('Add'), 'organization/add', array('attributes' => array('class' => array('btn', 'add-btn')))); ?>
+        </div>
     </div>
 
     <div class="organization-table-wrapper">
@@ -48,35 +48,42 @@
                     foreach ($row as $cell):
                         ?>
                         <td>
-                            <?php if (is_array($cell)): ?>
+                            <?php if ($col_index == 5): // ACTIONS COLUMN ?>
                                 <div class="action-dropdown">
                                     <button class="action-dropbtn">Actions &#9660;</button>
                                     <div class="action-dropdown-content">
-                                        <?php foreach ($cell as $key => $link): ?>
-                                            <?php
-                                            $class = isset($link['attributes']['class']) ? implode(' ', $link['attributes']['class']) : '';
-                                            $data_id = isset($link['attributes']['data-org-id']) ? ' data-org-id="' . $link['attributes']['data-org-id'] . '"' : '';
-                                            ?>
-                                            <?php print l($link['title'], $link['href'], array('attributes' => isset($link['attributes']) ? $link['attributes'] : array())); ?><?php endforeach; ?>
+                                        <?php foreach ($cell as $link): ?>
+                                            <?php print l($link['title'], $link['href'], array('attributes' => isset($link['attributes']) ? $link['attributes'] : array())); ?>
+                                        <?php endforeach; ?>
                                     </div>
                                 </div>
-                            <?php else: ?>
 
-                                <?php if ($col_index == 1): // Organization Name Column ?>
-                                    <div class="org-name-cell">
-                                        <div class="org-avatar"><?php print strtoupper(substr(trim(strip_tags($cell)), 0, 1)); ?></div>
-                                        <span class="org-title"><?php print $cell; ?></span>
-                                    </div>
+                            <?php elseif ($col_index == 1): // NAME COLUMN ?>
+                                <div class="org-name-cell">
+                                    <div class="org-avatar"><?php print strtoupper(substr(trim(strip_tags($cell)), 0, 1)); ?></div>
+                                    <span class="org-title"><?php print check_plain($cell); ?></span>
+                                </div>
 
-                                <?php elseif ($col_index == 3): // Manager Column ?>
-                                    <div class="manager-cell">
-                                        <span class="mgr-icon">👤</span> <?php print $cell; ?>
-                                    </div>
-
+                            <?php elseif ($col_index == 2): // ADDRESS COLUMN (The new array) ?>
+                                <?php if (is_array($cell)): ?>
+                                    <?php foreach ($cell as $address_item): ?>
+                                        <div class="-cell">
+                                            <span class="text-standard">
+                                                <?php print is_array($address_item) ? check_plain($address_item['value']) : check_plain($address_item); ?>
+                                            </span>
+                                        </div>
+                                    <?php endforeach; ?>
                                 <?php else: ?>
-                                    <span class="text-standard"><?php print $cell; ?></span>
+                                    <span class="text-standard"><?php print check_plain($cell); ?></span>
                                 <?php endif; ?>
 
+                            <?php elseif ($col_index == 3): // MANAGER COLUMN ?>
+                                <div class="manager-cell">
+                                    <span class="mgr-icon">👤</span> <?php print check_plain($cell); ?>
+                                </div>
+
+                            <?php else: // ANY OTHER COLUMN ?>
+                                <span class="text-standard"><?php print check_plain($cell); ?></span>
                             <?php endif; ?>
                         </td>
                         <?php

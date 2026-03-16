@@ -38,7 +38,7 @@ class OrganizationAPIController extends EntityAPIController
             $searchEscaped = addcslashes($search, '%_'); // escape % and _ for LIKE
             $query->propertyCondition('name', "%$searchEscaped%", 'LIKE');
         }
-        $query->pager(10);
+        $query->pager(1);
         return $query->execute();
     }
 

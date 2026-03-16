@@ -59,10 +59,14 @@
 
             <div class="row">
                 <div class="col-sm-12 form-group">
-                    <label>Address</label>
-                    <input type="text" class="form-control"
-                           value="<?php print check_plain($organization['address']); ?>"
-                           placeholder="Full Address" disabled>
+                    <label>Addresses</label>
+                    <?php foreach ($organization['address'] as $address): ?>
+                        <div style="margin-bottom: 10px;">
+                            <input type="text" class="form-control"
+                                   value="<?php print check_plain($address); ?>"
+                                   placeholder="Full Address" disabled />
+                        </div>
+                    <?php endforeach; ?>
                 </div>
             </div>
         </div>

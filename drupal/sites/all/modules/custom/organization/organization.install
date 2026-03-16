@@ -111,12 +111,70 @@ function organization_install()
         'entity_type' => 'organization',
         'bundle' => 'organization',
         'label' => t('Logo'),
+        'required' => FALSE,
         'settings' => array(
             'file_directory' => 'organization_logos',
             'file_extensions' => 'png jpg jpeg gif',
             'max_filesize' => '',
         ),
     ));
+}
+
+/**
+ * Implements hook_update() to update form_instance
+ */
+function organization_update_7101()
+{
+    $manager_instance = field_info_instance('organization', 'field_custom_manager', 'organization');
+    if ($manager_instance) {
+        $manager_instance['required'] = TRUE;
+        $manager_instance['widget']['type'] = 'entityreference_autocomplete';
+        $manager_instance['widget']['settings']['match_operator'] = 'CONTAINS';
+        field_update_instance($manager_instance);
+    }
+
+    $address_instance = field_info_instance('organization', 'field_custom_address', 'organization');
+    if ($address_instance) {
+        $address_instance['required'] = TRUE;
+        $address_instance['widget']['type'] = 'text_textarea';
+        field_update_instance($address_instance);
+    }
+
+    $phone_instance = field_info_instance('organization', 'field_custom_phone', 'organization');
+    if ($phone_instance) {
+        $phone_instance['required'] = TRUE;
+        $phone_instance['widget']['type'] = 'text';
+        field_update_instance($phone_instance);
+    }
+
+
+    $logo_instance = field_info_instance('organization', 'field_custom_logo', 'organization');
+    if ($logo_instance) {
+        $logo_instance['widget']['type'] = 'image_image';
+        $logo_instance['widget']['settings']['progress_indicator'] = 'throbber';
+        $logo_instance['widget']['settings']['preview_image_style'] = 'thumbnail';
+        $logo_instance['settings']['file_extensions'] = 'png jpg jpeg gif';
+        $logo_instance['settings']['max_filesize'] = '2MB';
+        $logo_instance['settings']['alt_field'] = 1;
+        $logo_instance['settings']['title_field'] = 0;
+        field_update_instance($logo_instance);
+    }
+
+    return t('Updated Manager and Logo field widgets.');
+}
+
+/**
+ * Implements hook_update to change form field
+ */
+function organization_update_7102()
+{
+    $field_name = 'field_custom_address';
+    $field = field_info_field($field_name);
+
+    if ($field && $field['cardinality'] != FIELD_CARDINALITY_UNLIMITED) {
+        $field['cardinality'] = FIELD_CARDINALITY_UNLIMITED;
+        field_update_field($field);
+    }
 }
 
 /**

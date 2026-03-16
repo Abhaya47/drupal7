@@ -19,7 +19,7 @@
                 </div>
 
                 <div class="form-field">
-                    <?php print render($form['user']); ?>
+                    <?php print render($form['field_custom_manager']); ?>
                 </div>
             </div>
 
@@ -29,19 +29,19 @@
                 </div>
 
                 <div class="form-field">
-                    <?php print render($form['phone']); ?>
+                    <?php print render($form['field_custom_phone']); ?>
                 </div>
             </div>
 
             <div class="form-row">
                 <div class="form-field full">
-                    <?php print render($form['address']); ?>
+                    <?php print render($form['field_custom_address']); ?>
                 </div>
             </div>
 
             <div class="form-row">
                 <div class="form-field">
-                    <?php print render($form['logo']); ?>
+                    <?php print render($form['field_custom_logo']); ?>
                 </div>
             </div>
 
