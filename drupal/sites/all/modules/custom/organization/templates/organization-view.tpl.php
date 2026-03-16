@@ -11,8 +11,8 @@
                 ?>
                 <img src="<?php print $logo_url; ?>" alt="Organization Logo" class="profile-avatar"/>
                 <div>
-                    <h4 class="profile-name"><?php print htmlspecialchars($organization['name']); ?></h4>
-                    <p class="profile-subtitle"><?php print htmlspecialchars($organization['manager_name']); ?></p>
+                    <h4 class="profile-name"><?php print check_plain($organization['name']); ?></h4>
+                    <p class="profile-subtitle"><?php print check_plain($organization['manager_name']); ?></p>
                 </div>
             </div>
             <div>
@@ -28,13 +28,13 @@
                 <div class="col-sm-6 form-group">
                     <label>Organization Name</label>
                     <input type="text" class="form-control"
-                           value="<?php print htmlspecialchars($organization['name']); ?>"
+                           value="<?php print check_plain($organization['name']); ?>"
                            placeholder="Organization Name" disabled>
                 </div>
                 <div class="col-sm-6 form-group">
                     <label>Manager Name</label>
                     <input type="text" class="form-control"
-                           value="<?php print htmlspecialchars($organization['manager_name']); ?>"
+                           value="<?php print check_plain($organization['manager_name']); ?>"
                            placeholder="Manager Name" disabled>
                 </div>
             </div>
@@ -43,7 +43,7 @@
                 <div class="col-sm-6 form-group">
                     <label>Phone Number</label>
                     <input type="text" class="form-control"
-                           value="<?php print htmlspecialchars($organization['phone']); ?>" placeholder="Phone Number"
+                           value="<?php print check_plain($organization['phone']); ?>" placeholder="Phone Number"
                            disabled>
                 </div>
                 <div class="col-sm-6 form-group">
@@ -61,7 +61,7 @@
                 <div class="col-sm-12 form-group">
                     <label>Address</label>
                     <input type="text" class="form-control"
-                           value="<?php print htmlspecialchars($organization['address']); ?>"
+                           value="<?php print check_plain($organization['address']); ?>"
                            placeholder="Full Address" disabled>
                 </div>
             </div>

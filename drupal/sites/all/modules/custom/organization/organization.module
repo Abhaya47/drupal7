@@ -198,6 +198,8 @@ function entityWrapper($org)
 
     $name = $wrapper->name->value();
     $status = $wrapper->status->value();
+    $changed = $wrapper->changed->value();
+    $created = $wrapper->created->value();
 
     // Manager
     $manager_name = '';
@@ -241,6 +243,8 @@ function entityWrapper($org)
         'phone' => $phone,
         'address' => $address,
         'logo' => $logo,
+        'changed' => $changed,
+        'created' => $created,
     );
 }
 

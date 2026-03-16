@@ -7,5 +7,6 @@ dependencies[] = entity
 dependencies[] = entityreference
 scripts[] = js/jquery.validate.min.js
 scripts[] = js/organization-form-validate.js
-files[] = organization.test
+files[] = tests/organization.test
+files[] = tests/organizationUnitTest.test
 files[] = organization.controller.inc

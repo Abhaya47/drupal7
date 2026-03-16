@@ -1,5 +1,10 @@
 <?php
 
+/*
+ * This is a functional test to verify organization form and form submission of organization/add functionality.
+ * The test follows a "Visit → Fill → Submit → Verify" flow.
+ *
+ */
 class OrganizationAdminTestCase extends DrupalWebTestCase
 {
 
@@ -75,9 +80,16 @@ class OrganizationAdminTestCase extends DrupalWebTestCase
             'phone' => '9800000000',
         );
 
-        $this->drupalPost(NULL, $edit, t('Save Organization'));
-
-        // 6. Check for the specific success message in your code
+        $response = $this->drupalPost(NULL, $edit, t('Save Organization'));
         $this->assertText('Test Corp');
+
+        $controller =  entity_get_controller('organization');
+
+        // Search for the specific name we just saved
+        $results = $controller->loadOrganization(NULL, 'Test Corp');
+        debug($results, 'Dump of page content');
+
+        // 3. Verify exactly one record was found
+        $this->assertTrue(count($results) == 1, 'Exactly one organization found in the database with the name "Test Corp".');
     }
 }
