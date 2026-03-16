@@ -27,7 +27,8 @@ function dashboard_menu()
  * Implements hook_theme().
  * Now points to the dashboard.tpl.php file using the 'template' key.
  */
-function dashboard_theme($existing, $type, $theme, $path) {
+function dashboard_theme($existing, $type, $theme, $path)
+{
     return array(
         'dashboard_layout' => array(
             // Ensure these keys match the # keys you return in dashboard_page_render
@@ -42,54 +43,95 @@ function dashboard_theme($existing, $type, $theme, $path) {
     );
 }
 
-function dashboard_page_render() {
+function dashboard_page_render()
+{
     // --- CHART 1: Organization Status (Pie Chart) ---
-    $query = db_select('organization', 'o');
-    $query->addField('o', 'status');
-    $query->addExpression('COUNT(*)', 'count');
-    $query->groupBy('o.status');
-    $org_query = $query->execute()->fetchAllKeyed();
-    // 2. Define our human-readable labels
-    $status_labels = array(
-        0 => t('Inactive'),
-        1 => t('Active'),
-    );
+    global $user;
+    if (in_array('administrator', $user->roles)) {
+        $query = db_select('organization', 'o');
+        $query->addField('o', 'status');
+        $query->addExpression('COUNT(*)', 'count');
+        $query->groupBy('o.status');
+        $org_query = $query->execute()->fetchAllKeyed();
+        // 2. Define our human-readable labels
+        $status_labels = array(
+            0 => t('Inactive'),
+            1 => t('Active'),
+        );
 
-    $labels = array();
-    $counts = array();
+        $labels = array();
+        $counts = array();
 
 
-    // 3. Process data for Google Charts
-    foreach ($org_query as $status_id => $count) {
-        $labels[] = isset($status_labels[$status_id]) ? (string) $status_labels[$status_id] : (string) $status_id;
-        $counts[] = (int) $count;
+        // 3. Process data for Google Charts
+        foreach ($org_query as $status_id => $count) {
+            $labels[] = isset($status_labels[$status_id]) ? (string)$status_labels[$status_id] : (string)$status_id;
+            $counts[] = (int)$count;
+        }
+
+        $chart_org = array(
+            '#type' => 'chart',
+            '#chart_id' => 'dashboard_org_status',
+            '#chart_type' => 'pie',
+            '#chart_library' => 'google',
+            '#title' => t('Organization Status'),
+        );
+
+        $chart_org['data'] = array(
+            '#type' => 'chart_data',
+            '#title' => t('Organizations'),
+            '#labels' => $labels, // These are now guaranteed strings
+            '#data' => $counts,   // These are now guaranteed numbers
+        );
+
+//    asset
+        $asset_options = asset_get_taxonomy_options('asset_condition');
+
+        $asset_query = db_select('field_data_field_custom_asset_condition', 'a');
+        $asset_query->addField('a', 'field_custom_asset_condition_tid ');
+        $asset_query->addExpression('COUNT(*)', 'count');
+        $asset_query->groupBy('a.field_custom_asset_condition_tid');
+        $asset_results = $asset_query->execute()->fetchAllKeyed();
+
+        $condition_labels = array();
+        $condition_counts = array();
+
+        foreach ($asset_results as $tid => $count) {
+            // Map the TID from the DB to the Name from your function
+            $condition_labels[] = isset($asset_options[$tid]) ? (string)$asset_options[$tid] : t('Unknown (@id)', array('@id' => $tid));
+            $condition_counts[] = (int)$count;
+        }
+
+        $chart_asset_condition = array(
+            '#type' => 'chart',
+            '#chart_id' => 'dashboard_asset_condition',
+            '#chart_type' => 'pie', // Column chart looks great for categories
+            '#chart_library' => 'google',
+            '#title' => t('Asset Condition Overview'),
+        );
+        $chart_asset_condition['data'] = array(
+            '#type' => 'chart_data',
+            '#title' => t('Asset Count'),
+            '#labels' => $condition_labels,
+            '#data' => $condition_counts,
+        );
+        drupal_add_css(drupal_get_path('module', 'dashboard') . '/css/dashboard.css');
+
+        return array(
+            '#theme' => 'dashboard_layout',
+            '#css' => 'dashboard.css',
+            '#chart_org' => $chart_org,
+            '#chart_assets' => $chart_asset_condition,
+
+        );
     }
-
-    $chart_org = array(
-        '#type' => 'chart',
-        '#chart_id' => 'dashboard_org_status',
-        '#chart_type' => 'pie',
-        '#chart_library' => 'google',
-        '#title' => t('Organization Status'),
-    );
-
-    $chart_org['data'] = array(
-        '#type' => 'chart_data',
-        '#title' => t('Organizations'),
-        '#labels' => $labels, // These are now guaranteed strings
-        '#data' => $counts,   // These are now guaranteed numbers
-    );
-
-
-    return array(
-        '#theme' => 'dashboard_layout',
-        '#chart_org' => $chart_org,
-    );
 }
+
 /**
  * Implements hook_chart_alter().
  */
-function dashboard_chart_alter(&$chart, $chart_id) {
+function dashboard_chart_alter(&$chart, $chart_id)
+{
     if ($chart_id === 'dashboard_org_status') {
         $chart['#raw_options']['is3D'] = TRUE;
         $chart['#raw_options']['pieHole'] = 0.4;
@@ -99,3 +141,4 @@ function dashboard_chart_alter(&$chart, $chart_id) {
         $chart['#raw_options']['colors'] = array('#e74c3c', '#2ecc71');
     }
 }
+

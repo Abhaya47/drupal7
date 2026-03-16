@@ -1,55 +1,43 @@
-/* Container styling */
-.custom-dashboard-wrapper {
-    padding: 30px;
-    background-color: #f4f7f9; /* Light slate background for the whole page */
-    font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
-    min-height: 400px;
+/* Target the grid container */
+.dashboard-grid {
+    display: grid;
+    /* This creates two equal-width columns side-by-side */
+    grid-template-columns: repeat(2, 1fr);
+    /* This adds space between the two cards (adjust to match your exact design) */
+    gap: 24px;
+    /* Ensures both cards stretch to be the exact same height */
+    align-items: stretch;
 }
 
-/* The "Card" Look */
+/* Optional styling to make your cards look like the ones in the design */
 .dashboard-chart-card {
     background: #ffffff;
-    border-radius: 8px;
-    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-    max-width: 800px;
-    margin: 0 auto;
-    overflow: hidden; /* Keeps corners rounded */
-    border: 1px solid #e1e4e8;
+    border-radius: 8px; /* Rounded corners */
+    padding: 24px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05); /* Soft shadow */
+    display: flex;
+    flex-direction: column; /* Allows contents to flow top-to-bottom */
 }
 
-/* Header within the card */
+/* Keep the title style consistent */
 .chart-title {
-    margin: 0;
-    padding: 20px 25px;
-    background-color: #ffffff;
-    border-bottom: 1px solid #eee;
-    font-size: 1.25rem;
-    color: #333;
+    margin-top: 0;
+    margin-bottom: 20px;
+    font-size: 18px; /* Example size */
+    color: #0f172a; /* Example dark color */
     font-weight: 600;
 }
 
-/* Chart Area */
+/* Push the footer to the bottom of the card uniformly */
 .chart-content {
-    padding: 20px;
-    display: flex;
-    justify-content: center; /* Centers the Google Chart SVG */
+    flex-grow: 1; /* This pushes the footer down to always align at the bottom */
 }
 
-/* Footer / Legend area */
-.chart-footer {
-    padding: 15px 25px;
-    background-color: #fafbfc;
-    border-top: 1px solid #eee;
-    font-size: 0.85rem;
-    color: #666;
-    font-style: italic;
-}
-
-/* Empty State Styling */
-.messages.warning {
-    padding: 20px;
-    border: 1px dashed #ccc;
-    background: #fff9e6;
-    text-align: center;
-    width: 100%;
+.chart-footer p {
+    margin-bottom: 0;
+    margin-top: 16px;
+    color: #64748b; /* Example secondary gray */
+    font-size: 14px; /* Example size */
+    border-top: 1px solid #e2e8f0; /* Optional top border line if desired */
+    padding-top: 16px;
 }
