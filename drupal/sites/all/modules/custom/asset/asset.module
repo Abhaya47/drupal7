@@ -685,6 +685,9 @@ function asset_maintenance($id)
 //    add item to queue
     $queue = DrupalQueue::get('asset_maintenance_queue');
     $queue->createItem(array('asset_id' => $id));
+
+    drupal_set_message(t('Asset maintenance for ID @id has been queued.', array('@id' => $id)));
+    drupal_goto('asset');
 }
 
 /**
@@ -723,8 +726,17 @@ function asset_asset_maintenance_worker($data)
     }
     $m_wrapper->save();
 
+//    updating asset value
+
+
 //    finding manager and setting up area dor mail
+
     $asset_wrapper = entity_metadata_wrapper('asset', $asset_id);
+    $taxonomy_options = asset_get_taxonomy_options('asset_condition');
+    $term_id = array_search('Needs Repair', $taxonomy_options);
+
+    $asset_wrapper->field_custom_asset_condition->set($term_id);
+    $asset_wrapper->save();
     $organization_wrapper = $asset_wrapper->field_custom_asset_organization;
 
     $manager_email = '';
@@ -742,14 +754,27 @@ function asset_asset_maintenance_worker($data)
         );
         $language = language_default();
 
-        // Send Mail to Owner
-        if (!empty($owner_email)) {
-            drupal_mail('asset', 'maintenance_req_owner', $owner_email, $language, $params);
-        }
+        $emails = [
+            'owner' => $owner_email,
+            'manager' => $manager_email,
+        ];
+        // Send Mail to Owner and manager
+        foreach ($emails as $type => $email) {
+            if (!empty($email)) {
+                $result = drupal_mail('asset', 'maintenance_req_' . $type, $email, $language, $params);
 
-        // Send Mail to Manager
-        if (!empty($manager_email)) {
-            drupal_mail('asset', 'maintenance_req_manager', $manager_email, $language, $params);
+                // Check if the mail failed
+                if ($result['result'] !== TRUE) {
+                    $log_message = date('Y-m-d H:i:s') . " - Error: Could not send $type email to $email\n";
+
+                    // Write to a custom file in your private or temporary directory
+                    file_put_contents('temporary://asset_mail_errors.log', $log_message, FILE_APPEND);
+
+                    // Optional: Also log to Drupal's internal watchdog for visibility in the UI
+                    watchdog('asset_maintenance', 'Failed to send @type email to @email',
+                        array('@type' => $type, '@email' => $email), WATCHDOG_ERROR);
+                }
+            }
         }
     }
 }

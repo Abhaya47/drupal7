@@ -12,8 +12,8 @@
                 ?>
                 <img src="<?php print $image_url; ?>" alt="Asset Image" class="profile-avatar"/>
                 <div>
-                    <h4 class="profile-name"><?php print htmlspecialchars($asset['name']); ?></h4>
-                    <p class="profile-subtitle"><?php print htmlspecialchars($asset['assigned_user']); ?></p>
+                    <h4 class="profile-name"><?php print check_plain($asset['name']); ?></h4>
+                    <p class="profile-subtitle"><?php print check_plain($asset['assigned_user']); ?></p>
                 </div>
             </div>
             <div>
@@ -33,13 +33,13 @@
                 <div class="col-sm-6 form-group">
                     <label>Asset Name</label>
                     <input type="text" class="form-control"
-                           value="<?php print htmlspecialchars($asset['name']); ?>"
+                           value="<?php print check_plain($asset['name']); ?>"
                            placeholder="Asset Name" disabled>
                 </div>
                 <div class="col-sm-6 form-group">
                     <label>SSN</label>
                     <input type="text" class="form-control"
-                           value="<?php print htmlspecialchars($asset['ssn']); ?>"
+                           value="<?php print check_plain($asset['ssn']); ?>"
                            placeholder="SSN" disabled>
                 </div>
             </div>
@@ -48,13 +48,13 @@
                 <div class="col-sm-6 form-group">
                     <label>Asset Type</label>
                     <input type="text" class="form-control"
-                           value="<?php print htmlspecialchars($asset['asset_type']); ?>"
+                           value="<?php print check_plain($asset['asset_type']); ?>"
                            placeholder="Asset Type" disabled>
                 </div>
                 <div class="col-sm-6 form-group">
                     <label>Condition</label>
                     <input type="text" class="form-control"
-                           value="<?php print htmlspecialchars($asset['asset_condition']); ?>"
+                           value="<?php print check_plain($asset['asset_condition']); ?>"
                            placeholder="Asset Condition" disabled>
                 </div>
             </div>
@@ -63,13 +63,13 @@
                 <div class="col-sm-6 form-group">
                     <label>Organization</label>
                     <input type="text" class="form-control"
-                           value="<?php print htmlspecialchars($asset['asset_organization']); ?>"
+                           value="<?php print check_plain($asset['asset_organization']); ?>"
                            placeholder="Organization" disabled>
                 </div>
                 <div class="col-sm-6 form-group">
                     <label>Assigned User</label>
                     <input type="text" class="form-control"
-                           value="<?php print htmlspecialchars($asset['assigned_user']); ?>"
+                           value="<?php print check_plain($asset['assigned_user']); ?>"
                            placeholder="Assigned User" disabled>
                 </div>
             </div>

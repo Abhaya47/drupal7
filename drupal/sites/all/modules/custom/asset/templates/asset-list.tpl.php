@@ -64,11 +64,11 @@
                                 <?php if ($col_index == 1): // Asset Name Column ?>
                                     <div class="asset-name-cell">
                                         <div class="asset-avatar"><?php print strtoupper(substr(trim(strip_tags($cell)), 0, 1)); ?></div>
-                                        <span class="asset-title"><?php print $cell; ?></span>
+                                        <span class="asset-title"><?php print check_plain($cell); ?></span>
                                     </div>
 
                                 <?php else: ?>
-                                    <span class="text-standard"><?php print $cell; ?></span>
+                                    <span class="text-standard"><?php print check_plain($cell); ?></span>
                                 <?php endif; ?>
 
                             <?php endif; ?>
