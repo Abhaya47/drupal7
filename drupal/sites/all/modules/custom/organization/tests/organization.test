@@ -56,8 +56,8 @@ class OrganizationAdminTestCase extends DrupalWebTestCase
     {
         global $base_url;
         $base_url = 'http://localhost';
-
-
+        global $user;
+        debug($user, 'Dump of page content');
         // 3. Navigate to the form
         $path = 'organization/add';
         $this->drupalGet($path);
@@ -76,11 +76,15 @@ class OrganizationAdminTestCase extends DrupalWebTestCase
         $edit = array(
             'name' => 'Test Corp',
             'status' => 1,
-            'address' => 'Kathmandu',
-            'phone' => '9800000000',
+            // Targeting the first value (delta 0) for the 'undetermined' (und) language
+            'field_custom_manager[und][0][target_id]' =>   $user->name . ' (' . $user->uid . ')',
+            'field_custom_address[und][0][value]' => 'Gungabu, Kathmandu, Nepal',
+            'field_custom_phone[und][0][value]' => '9800000000',
         );
 
         $response = $this->drupalPost(NULL, $edit, t('Save Organization'));
+        debug($response, 'Dump of page content');
+
         $this->assertText('Test Corp');
 
         $controller =  entity_get_controller('organization');
