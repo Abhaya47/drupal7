@@ -7,6 +7,7 @@
 function alter_login_form_form_user_login_alter(&$form, &$form_state, $form_id) {
     $module_path = drupal_get_path('module', 'alter_login_form');
 
+    $form['#theme'] = array('user_login');
     // Attach the validation library
     $form['#attached']['js'][] = array(
         'data' => $module_path . '/js/jquery.validate.min.js',

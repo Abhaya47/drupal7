@@ -9,10 +9,6 @@
             <!--        </div>-->
             <div class="table-header-toolbar">
                 <div class="toolbar-left">
-                    <div class="search-box">
-                        <span class="search-icon">🔍</span>
-                        <?php print render($filter_form['search']); ?>
-                    </div>
                     <div class="filter-wrapper">
                         <?php print render($filter_form['status']); ?>
                     </div>
